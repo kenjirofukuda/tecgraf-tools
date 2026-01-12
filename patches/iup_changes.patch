@@ -1,0 +1,196 @@
+Index: srccd/iup_cd.c
+===================================================================
+--- srccd/iup_cd.c	(revision 5971)
++++ srccd/iup_cd.c	(working copy)
+@@ -82,7 +82,7 @@
+   cdcreatecanvasNATIVE = ctx->cxCreateCanvas;
+ 
+   cdIupContext = *ctx;
+-  cdIupContext.cxCreateCanvas = cdcreatecanvasIUP;
++  cdIupContext.cxCreateCanvas = (VoidArgProc) cdcreatecanvasIUP;
+ 
+   return &cdIupContext;
+ }
+@@ -123,7 +123,7 @@
+   cdcreatecanvasDBUFFER = ctx->cxCreateCanvas;
+ 
+   cdIupContextDBuffer = *ctx;
+-  cdIupContextDBuffer.cxCreateCanvas = cdcreatecanvasIUP_DBUFFER;
++  cdIupContextDBuffer.cxCreateCanvas = (VoidArgProc) cdcreatecanvasIUP_DBUFFER;
+ 
+   return &cdIupContextDBuffer;
+ }
+@@ -164,7 +164,7 @@
+   cdcreatecanvasDBUFFERRGB = ctx->cxCreateCanvas;
+ 
+   cdIupContextDBufferRGB = *ctx;
+-  cdIupContextDBufferRGB.cxCreateCanvas = cdcreatecanvasIUP_DBUFFERRGB;
++  cdIupContextDBufferRGB.cxCreateCanvas = (VoidArgProc) cdcreatecanvasIUP_DBUFFERRGB;
+ 
+   return &cdIupContextDBufferRGB;
+ }
+Index: srccd/iup_draw_cd.c
+===================================================================
+--- srccd/iup_draw_cd.c	(revision 5971)
++++ srccd/iup_draw_cd.c	(working copy)
+@@ -520,7 +520,7 @@
+                  CD_CAP_LINECAP | CD_CAP_LINEJOIN | CD_CAP_PATH | CD_CAP_BEZIER |
+                  CD_CAP_PALETTE | CD_CAP_CLIPPOLY | CD_CAP_REGION | CD_CAP_CHORD),
+   CD_CTX_WINDOW,
+-  cdcreatecanvas,
++  (VoidArgProc) cdcreatecanvas,
+   cdinittable,
+   NULL,
+   NULL,
+Index: srcledc/y.tab.c
+===================================================================
+--- srcledc/y.tab.c	(revision 5971)
++++ srcledc/y.tab.c	(working copy)
+@@ -17,6 +17,7 @@
+ #include <errno.h>
+ #include "ledc.h"
+ 
++extern int yylex(void);
+ static int yyparse(void);
+ 
+ #line 11 "ledc.y"
+@@ -274,7 +275,8 @@
+ 
+     yyssp = yyss;
+     yyvsp = yyvs;
+-    *yyssp = yystate = 0;
++    *yyssp  = 0;
++    yystate = 0;
+ 
+ yyloop:
+     if (yyn = yydefred[yystate]) goto yyreduce;
+Index: srclua5/ctrl/iuplua_mglplot.c
+===================================================================
+--- srclua5/ctrl/iuplua_mglplot.c	(revision 5971)
++++ srclua5/ctrl/iuplua_mglplot.c	(working copy)
+@@ -59,7 +59,9 @@
+   int count = luaL_checkinteger(L, 6);
+   px = iuplua_checkstring_array(L, 4, count);
+   py = iuplua_checkdouble_array(L, 5, count);
+-  IupMglPlotInsert1D(iuplua_checkihandle(L,1), luaL_checkinteger(L,2), luaL_checkinteger(L,3), px, py, count);
++  IupMglPlotInsert1D(iuplua_checkihandle(L,1), luaL_checkinteger(L,2),
++		     luaL_checkinteger(L,3),
++		     (const char **) px, py, count);
+   free(px);
+   free(py);
+   return 0;
+@@ -98,7 +100,9 @@
+   int count = luaL_checkinteger(L, 5);
+   px = iuplua_checkstring_array(L, 3, count);
+   py = iuplua_checkdouble_array(L, 4, count);
+-  IupMglPlotSet1D(iuplua_checkihandle(L,1), luaL_checkinteger(L,2), px, py, count);
++  IupMglPlotSet1D(iuplua_checkihandle(L,1), luaL_checkinteger(L,2),
++		  (const char **) px,
++		  py, count);
+   free(px);
+   free(py);
+   return 0;
+Index: srclua5/ctrl/iuplua_plot.c
+===================================================================
+--- srclua5/ctrl/iuplua_plot.c	(revision 5971)
++++ srclua5/ctrl/iuplua_plot.c	(working copy)
+@@ -332,7 +332,10 @@
+   int count = luaL_checkinteger(L, 6);
+   px = iuplua_checkstring_array(L, 4, count);
+   py = iuplua_checkdouble_array(L, 5, count);
+-  IupPlotInsertStrSamples(iuplua_checkihandle(L,1), luaL_checkinteger(L,2), luaL_checkinteger(L,3), px, py, count);
++  IupPlotInsertStrSamples(iuplua_checkihandle(L,1), luaL_checkinteger(L,2),
++			  luaL_checkinteger(L,3),
++			  (const char **) px,
++			  py, count);
+   free(px);
+   free(py);
+   return 0;
+@@ -344,7 +347,9 @@
+   int count = luaL_checkinteger(L, 5);
+   px = iuplua_checkdouble_array(L, 3, count);
+   py = iuplua_checkdouble_array(L, 4, count);
+-  IupPlotAddSamples(iuplua_checkihandle(L,1), luaL_checkinteger(L,2), px, py, count);
++  IupPlotAddSamples(iuplua_checkihandle(L,1), luaL_checkinteger(L,2),
++		    px,
++		    py, count);
+   free(px);
+   free(py);
+   return 0;
+@@ -357,7 +362,9 @@
+   int count = luaL_checkinteger(L, 5);
+   px = iuplua_checkstring_array(L, 3, count);
+   py = iuplua_checkdouble_array(L, 4, count);
+-  IupPlotAddStrSamples(iuplua_checkihandle(L,1), luaL_checkinteger(L,2), px, py, count);
++  IupPlotAddStrSamples(iuplua_checkihandle(L,1), luaL_checkinteger(L,2),
++		       (const char **)px,
++		       py, count);
+   free(px);
+   free(py);
+   return 0;
+Index: srclua5/iuplua_api.c
+===================================================================
+--- srclua5/iuplua_api.c	(revision 5971)
++++ srclua5/iuplua_api.c	(working copy)
+@@ -571,7 +571,7 @@
+ 
+   ret = IupListDialog(type, luaL_checkstring(L, 2), 
+                             size, 
+-                            list, 
++                            (const char **) list, 
+                             (int)luaL_checkinteger(L, 5), 
+                             (int)luaL_checkinteger(L, 6),
+                             (int)luaL_checkinteger(L, 7),
+Index: srclua5/iuplua_im.c
+===================================================================
+--- srclua5/iuplua_im.c	(revision 5971)
++++ srclua5/iuplua_im.c	(working copy)
+@@ -83,7 +83,8 @@
+ {
+   int file_count = (int)luaL_checkinteger(L, 2);
+   char** filename_list = iuplua_checkstring_array(L, 1, file_count);
+-  Ihandle* animation = IupLoadAnimationFrames(filename_list, file_count);
++  Ihandle* animation = IupLoadAnimationFrames((const char **) filename_list,
++					      file_count);
+   iuplua_pushihandle(L, animation);
+   return 1;
+ }
+Index: srcluaconsole/config.mak
+===================================================================
+--- srcluaconsole/config.mak	(revision 5971)
++++ srcluaconsole/config.mak	(working copy)
+@@ -239,3 +239,4 @@
+   OPTFLAGS = -mminimal-toc -ansi -pedantic 
+   LFLAGS = -Xlinker "-bbigtoc"
+ endif
++
+Index: srcview/iup_view.c
+===================================================================
+--- srcview/iup_view.c	(revision 5971)
++++ srcview/iup_view.c	(working copy)
+@@ -202,7 +202,9 @@
+   if (!all)
+     count = 3;
+ 
+-  ret = IupListDialog(1,"File Format",count,options,1,9,count+1,NULL);
++  ret = IupListDialog(1,"File Format",count,
++		      (const char**) options,
++		      1,9,count+1,NULL);
+   if (ret == -1)
+     return NULL;
+   else
+Index: srcvled/vled_image_editor.c
+===================================================================
+--- srcvled/vled_image_editor.c	(revision 5971)
++++ srcvled/vled_image_editor.c	(working copy)
+@@ -1723,7 +1723,9 @@
+ 
+     qsort(image_names, num_images, sizeof(Ihandle*), compare_names);
+ 
+-    ret = IupListDialog(1, "Open Image", num_images, image_names, 1, 30, 10, NULL);
++    ret = IupListDialog(1, "Open Image", num_images,
++			(const char **) image_names,
++			1, 30, 10, NULL);
+     if (ret != -1)
+     {
+       char* name = image_names[ret];

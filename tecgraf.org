@@ -1,0 +1,539 @@
+#+title: tecgraf.org
+#+1author: kenjirofukuda@gmail.com
+#+options: toc:nil num:nil ^:nil ^:{}
+#+HTML_HEAD_EXTRA: <style> .figure p {text-align: left;}</style>
+#+HTML_HEAD_EXTRA: <script src="https://cdn.jsdelivr.net/npm/mermaid@11.12.0/dist/mermaid.min.js"></script>
+
+* Links
+- IUP :: https://www.tecgraf.puc-rio.br/iup/
+- CD :: https://www.tecgraf.puc-rio.br/cd/
+- IM :: https://www.tecgraf.puc-rio.br/im/
+- TECMAKE :: https://www.tecgraf.puc-rio.br/tecmake/en/main.html
+
+* current SVN version
+
+| im   | r820  |
+| cd   | r901  |
+| ftgl | r901  |
+| iup  | r5971 |
+
+
+* TARGET
+** TARGET = GTK
+#+begin_src bash :results output :session tecgraf-session
+  export USE_GTK=Yes
+  export USE_GTK3=Yes
+  export USE_MOTIF=
+  export USE_X11=
+  export EXCLUDE_TARGETS="cdpdf cdluapdf5" 
+  env | grep USE_ | sort
+#+end_src
+
+#+RESULTS:
+: LSP_USE_PLISTS=true
+: USE_GTK3=Yes
+: USE_GTK=Yes
+: USE_LUA53=Yes
+: USE_LUA_VERSION=5.3
+: USE_MOTIF=
+: USE_PKGCONFIG=Yes
+: USE_X11=
+
+** TARGET = MOTIF
+#+begin_src bash :session tecgraf-session
+  export USE_GTK=
+  export USE_GTK3=
+  export USE_MOTIF=Yes
+  export USE_X11=Yes
+  export EXCLUDE_TARGETS="cdpdf cdluapdf5 iupweb iup_scintilla iupvled" 
+  env | grep USE_ | sort
+#+end_src
+
+#+RESULTS:
+| LSP_USE_PLISTS=true |
+| USE_X11=Yes         |
+| USE_LUA53=Yes       |
+| USE_GTK=            |
+| USE_MOTIF=Yes       |
+| USE_LUA_VERSION=5.3 |
+| USE_PKGCONFIG=Yes   |
+| USER=kenjiro        |
+| USE_GTK3=           |
+
+* IM
+- @see https://www.tecgraf.puc-rio.br/im/en/guide.html
+
+** svn install
+- @see https://www.tecgraf.puc-rio.br/im/en/svn.html
+#+begin_src bash
+  if [ -d $TECTOOLS_HOME/im ]; then
+      echo "im already checkuout."
+  else
+      cd $TECTOOLS_HOME
+      svn checkout -r820 svn://svn.code.sf.net/p/imtoolkit/im/trunk/im im
+  fi
+  exit 0
+#+end_src
+
+#+RESULTS:
+: im already checkuout.
+
+** clean im
+#+begin_src bash
+  cd  $TECTOOLS_HOME/im && rm -rf obj lib
+#+end_src
+
+#+RESULTS:
+
+** build im
+#+begin_src bash :results list :session tecgraf-session
+  . "$TECGRAF_REPO_ROOT/bin/bashrc_iup"
+  env | egrep  '(LUA|TEC)'
+  cd  $TECTOOLS_HOME/im || echo not found im
+  debug_tec_uname
+  make -e -j$(nproc) &> /tmp/im.log
+#+end_src
+
+#+RESULTS:
+- LUA_BIN=/usr/bin
+- USE_LUA53=Yes
+- USE_LUA_VERSION=5.3
+- LUA_INC=/usr/include/lua5.3
+- TECTOOLS_HOME=/home/kenjiro/Nextcloud/tecgraf/repos
+- LUA_SUFFIX=
+- PWD:
+  /home/kenjiro/Nextcloud/tecgraf/repos/im
+- start
+- BUILD_64=Yes
+- CYGW=Linux
+- GCCVER=
+- LUA_SFX=53
+- LUA_VER=5.3
+- TEC_DIST=VoidLinuxrolling
+- TEC_DISTNAME=VoidLinux
+- TEC_DISTVERSION=rolling
+- TEC_LUA_LIB=/usr/lib64/lua/
+- TEC_SYSARCH=x64
+- TEC_SYSMINOR=12
+- TEC_SYSNAME=Linux
+- TEC_SYSTEM_INC=/usr/include
+- TEC_SYSTEM_LIB=/usr/lib64
+- TEC_SYSVERSION=6
+- TEC_UNAME=Linux612_64
+
+** backup im
+#+begin_src bash :results output :session tecgraf-session
+  backup_tecgraf_build_result.sh im
+#+end_src
+
+#+RESULTS:
+#+begin_example
+im_motif
+./lib/Linux612_64
+./
+./libim_process_omp.so
+./libim_fftw3.a
+./libim.so
+./libim_process_omp.a
+./libim_process.so
+./libim.a
+./libim_jp2.so
+./libim_process.a
+./libim_fftw3.so
+./Lua53/
+./Lua53/libimlua53.so
+./Lua53/libimlua_process_omp53.so
+./Lua53/libimlua_fftw353.so
+./Lua53/libimlua_process53.so
+./Lua53/libimlua53.a
+./Lua53/libimlua_fftw353.a
+./Lua53/libimlua_process53.a
+./Lua53/libimlua_process_omp53.a
+./Lua53/libimlua_jp253.a
+./Lua53/libimlua_jp253.so
+./libim_jp2.a
+./
+./libim_process_omp.so
+./libim_fftw3.a
+./libim.so
+./libim_process_omp.a
+./libim_process.so
+./libim.a
+./libim_jp2.so
+./libim_process.a
+./libim_fftw3.so
+./Lua53/
+./Lua53/libimlua53.so
+./Lua53/libimlua_process_omp53.so
+./Lua53/libimlua_fftw353.so
+./Lua53/libimlua_process53.so
+./Lua53/libimlua53.a
+./Lua53/libimlua_fftw353.a
+./Lua53/libimlua_process53.a
+./Lua53/libimlua_process_omp53.a
+./Lua53/libimlua_jp253.a
+./Lua53/libimlua_jp253.so
+./libim_jp2.a
+#+end_example
+
+
+* CD
+- @see https://www.tecgraf.puc-rio.br/cd/en/guide.html
+** svn install
+- @see https://www.tecgraf.puc-rio.br/cd/en/svn.html
+#+begin_serc bash
+  if [ -d $TECTOOLS_HOME/cd ]; then
+      echo "cd already checkuout."
+  else
+      cd $TECTOOLS_HOME
+      svn checkout -r901 svn://svn.code.sf.net/p/canvasdraw/cd/trunk/cd cd 
+  fi
+
+  if [ -d $TECTOOLS_HOME/ftgl ]; then
+      echo "ftgl already checkuout."
+  else
+      cd $TECTOOLS_HOME
+      svn checkout -r901 svn://svn.code.sf.net/p/canvasdraw/cd/trunk/ftgl ftgl
+  fi
+  exit 0
+#+end_src
+
+#+RESULTS:
+| cd   | already | checkuout. |
+| ftgl | already | checkuout. |
+
+** patch to ftgl
+#+begin_src bash
+  if [ ! -d $TECTOOLS_HOME/ftgl ]; then
+      echo "ftgl not found."
+      exit 1
+  fi
+  if [ !  -f $TECTOOLS_HOME/patches/ftgl_changes.patch ]; then
+      echo "ftgl_changes.patch not found."
+      exit 1
+  fi
+  cd $TECTOOLS_HOME/ftgl
+  pathc -p0 $TECTOOLS_HOME/patches/ftgl_changes.patch
+  exit 0
+#+end_src
+
+** clean ftgl
+#+begin_src bash
+  cd  $TECTOOLS_HOME/ftgl && rm -rf obj lib
+#+end_src
+
+#+RESULTS:
+
+** build ftgl
+#+begin_src bash :results list :session tecgraf-session
+  . "$TECGRAF_REPO_ROOT/bin/bashrc_iup"
+  env | egrep  '(LUA|TEC)'
+  cd  $TECTOOLS_HOME/ftgl || echo not found ftgl
+  debug_tec_uname
+  make -e -j$(nproc) &> /tmp/ftgl.log
+#+end_src
+
+#+RESULTS:
+- LUA_BIN=/usr/bin
+
+** backup ftgl
+#+begin_src bash :results output :session tecgraf-session
+  backup_tecgraf_build_result ftgl
+#+end_src
+
+#+RESULTS:
+: ftgl_motif
+: ./lib/Linux612_64
+: ./
+: ./libftgl.a
+: ./libftgl.so
+: ./
+: ./libftgl.a
+: ./libftgl.so
+
+** install ftgl
+
+#+begin_src bash
+  if [ ! -d $TECTOOLS_HOME/ftgl ]; then
+      echo "ftgl not found."
+      exit 1
+  fi
+  cd $TECTOOLS_HOME/ftgl
+  make
+  if [ ! -f $TECTOOLS_HOME/ftgl/lib/Linux612_64/libftgl.a ]; then
+      echo "libftgl.a not found."
+      exit 1
+  fi
+  if [ ! -f $TECTOOLS_HOME/ftgl/lib/Linux612_64/libftgl.so ]; then
+      echo "libftgl.so not found."
+      exit 1
+  fi
+  sudo cp $TECTOOLS_HOME/ftgl/lib/Linux612_64/libftgl.a /usr/lib/
+  sudo cp $TECTOOLS_HOME/ftgl/lib/Linux612_64/libftgl.so /usr/lib/
+#+end_src
+
+#+RESULTS:
+
+** clean cd
+#+begin_src bash
+  cd  $TECTOOLS_HOME/cd && rm -rf obj lib
+#+end_src
+
+#+RESULTS:
+
+** build cd
+#+begin_src bash :results list :session tecgraf-session
+  . "$TECGRAF_REPO_ROOT/bin/bashrc_iup"
+  env | egrep  '(LUA|TEC)'
+  cd  $TECTOOLS_HOME/cd || (echo not found cd; exit 1)
+  make -e -j$(nproc) &> /tmp/cd.log
+#+end_src
+
+#+RESULTS:
+- LUA_BIN=/usr/bin
+- USE_LUA53=Yes
+- USE_LUA_VERSION=5.3
+- LUA_INC=/usr/include/lua5.3
+- TECTOOLS_HOME=/home/kenjiro/Nextcloud/tecgraf/repos
+- LUA_SUFFIX=
+
+** backup cd
+#+begin_src bash :results output :session tecgraf-session
+  backup_tecgraf_build_result.sh cd
+#+end_src
+
+#+RESULTS:
+#+begin_example
+cd_motif
+./lib/Linux612_64
+./
+./libcdx11.so
+./libcdim.so
+./libcdcontextplus.a
+./libcdim.a
+./libcdgl.so
+./libcdx11.a
+./libcdgl.a
+./Lua53/
+./Lua53/libcdluaim53.a
+./Lua53/libcdluaim53.so
+./Lua53/libcdluacontextplus53.a
+./Lua53/libcdlua53.so
+./Lua53/libcdluagl53.so
+./Lua53/libcdluagl53.a
+./Lua53/libcdluacontextplus53.so
+./Lua53/libcdlua53.a
+./libcdcontextplus.so
+./
+./libcdx11.so
+./libcdim.so
+./libcdcontextplus.a
+./libcdim.a
+./libcdgl.so
+./libcdx11.a
+./libcdgl.a
+./Lua53/
+./Lua53/libcdluaim53.a
+./Lua53/libcdluaim53.so
+./Lua53/libcdluacontextplus53.a
+./Lua53/libcdlua53.so
+./Lua53/libcdluagl53.so
+./Lua53/libcdluagl53.a
+./Lua53/libcdluacontextplus53.so
+./Lua53/libcdlua53.a
+./libcdcontextplus.so
+#+end_example
+
+* IUP
+- @see https://www.tecgraf.puc-rio.br/iup/en/guide.html
+
+** svn install
+- @see https://www.tecgraf.puc-rio.br/iup/en/svn.html
+#+begin_src bash
+  if [ -d $TECTOOLS_HOME/iup ]; then
+      echo "iup already checkuout."
+  else
+      cd $TECTOOLS_HOME
+      svn checkout -r5971 svn://svn.code.sf.net/p/iup/iup/trunk/iup iup
+  fi
+  exit 0
+#+end_src
+
+#+RESULTS:
+
+** overwrite iup-go
+
+#+begin_src bash
+  SRC=/home/kenjiro/Documents/github/gen2brain/iup-go/iup/external/include
+  DST=/home/kenjiro/Nextcloud/tecgraf/repos/iup/include
+  if [ ! -d "$SRC" ]; then
+      echo "not found $SRC"
+      exit 1
+  fi
+  if [ ! -d "$DST" ]; then
+      echo "not found $SRC"
+      exit 1
+  fi
+  rsync -av -delete $SRC/ $DST/
+#+end_src
+
+#+begin_src bash
+  SRC=/home/kenjiro/Documents/github/gen2brain/iup-go/iup/external/src
+  DST=/home/kenjiro/Nextcloud/tecgraf/repos/iup/src
+  if [ ! -d "$SRC" ]; then
+      echo "not found $SRC"
+      exit 1
+  fi
+  if [ ! -d "$DST" ]; then
+      echo "not found $SRC"
+      exit 1
+  fi
+  rsync -av -delete $SRC/ $DST/
+#+end_src
+
+
+** fix: src/libjasper2/base/jas_stream.c
+#+begin_src c
+// add: kenjirofukuda@gmail.com
+#define JAS_HAVE_UNISTD_H 1
+#+end_src
+
+** install libjasper
+#+begin_src bash 
+ sudo xbps-install jasper jasper-devel libjasper
+ sudo xbps-install lua lua-devel
+#+end_src
+
+** clean iup
+#+begin_src bash
+  cd  $TECTOOLS_HOME/iup && rm -rf obj lib
+#+end_src
+
+#+RESULTS:
+
+** build iup
+#+begin_src bash :results list :session tecgraf-session
+  cd  $TECTOOLS_HOME/iup || (echo not found iup; exit 1)
+  pwd
+  . "$TECGRAF_REPO_ROOT/bin/bashrc_iup"
+  env | egrep  '(LUA|TEC)'
+  rm -rf /tmp/iup.log
+  cd  $TECTOOLS_HOME/iup && make -e -j$(nproc) &> /tmp/iup.log
+#+end_src
+
+#+RESULTS:
+- /home/kenjiro/Nextcloud/tecgraf/repos/iup
+- LUA_BIN=/usr/bin
+- USE_LUA53=Yes
+- USE_LUA_VERSION=5.3
+- LUA_INC=/usr/include/lua5.3
+- TECTOOLS_HOME=/home/kenjiro/Nextcloud/tecgraf/repos
+- LUA_SUFFIX=
+
+
+** backup iup
+#+begin_src bash :results output :session tecgraf-session
+  backup_tecgraf_build_result.sh iup
+#+end_src
+
+#+RESULTS:
+#+begin_example
+iup_motif
+./lib/Linux612_64
+./
+./libiuptuio.a
+./libiup_plot.a
+./libiupgl.so
+./libiupcd.a
+./libiupmot.so
+./libiupcd.so
+./libiuptuio.so
+./libiup_mglplot.a
+./libiupim.a
+./libiup_mglplot.so
+./libiupglcontrols.a
+./libiupgl.a
+./libiupimglib.a
+./libiupglcontrols.so
+./libiupim.so
+./libiupimglib.so
+./libiupmot.a
+./libiupcontrols.a
+./libiupcontrols.so
+./Lua53/
+./Lua53/libiupluascripterdlg53.so
+./Lua53/libiuplua53.so
+./Lua53/libiupluagl53.so
+./Lua53/libiupluagl53.a
+./Lua53/libiuplua_mglplot53.so
+./Lua53/libiupluacd53.so
+./Lua53/libiupluaimglib53.a
+./Lua53/libiuplua53.a
+./Lua53/libiupluaim53.so
+./Lua53/libiupluacontrols53.so
+./Lua53/libiuplua_mglplot53.a
+./Lua53/libiupluacontrols53.a
+./Lua53/libiupluaglcontrols53.a
+./Lua53/libiuplua_scintilla53.so
+./Lua53/libiuplua_plot53.a
+./Lua53/libiuplua_plot53.so
+./Lua53/libiupluaimglib53.so
+./Lua53/libiupluaweb53.a
+./Lua53/libiupluaglcontrols53.so
+./Lua53/libiupluatuio53.so
+./Lua53/libiupluatuio53.a
+./Lua53/libiupluaim53.a
+./Lua53/libiupluaweb53.so
+./Lua53/libiupluascripterdlg53.a
+./Lua53/libiupluacd53.a
+./Lua53/libiuplua_scintilla53.a
+./libiup_plot.so
+./
+./libiuptuio.a
+./libiup_plot.a
+./libiupgl.so
+./libiupcd.a
+./libiupmot.so
+./libiupcd.so
+./libiuptuio.so
+./libiup_mglplot.a
+./libiupim.a
+./libiup_mglplot.so
+./libiupglcontrols.a
+./libiupgl.a
+./libiupimglib.a
+./libiupglcontrols.so
+./libiupim.so
+./libiupimglib.so
+./libiupmot.a
+./libiupcontrols.a
+./libiupcontrols.so
+./Lua53/
+./Lua53/libiupluascripterdlg53.so
+./Lua53/libiuplua53.so
+./Lua53/libiupluagl53.so
+./Lua53/libiupluagl53.a
+./Lua53/libiuplua_mglplot53.so
+./Lua53/libiupluacd53.so
+./Lua53/libiupluaimglib53.a
+./Lua53/libiuplua53.a
+./Lua53/libiupluaim53.so
+./Lua53/libiupluacontrols53.so
+./Lua53/libiuplua_mglplot53.a
+./Lua53/libiupluacontrols53.a
+./Lua53/libiupluaglcontrols53.a
+./Lua53/libiuplua_scintilla53.so
+./Lua53/libiuplua_plot53.a
+./Lua53/libiuplua_plot53.so
+./Lua53/libiupluaimglib53.so
+./Lua53/libiupluaweb53.a
+./Lua53/libiupluaglcontrols53.so
+./Lua53/libiupluatuio53.so
+./Lua53/libiupluatuio53.a
+./Lua53/libiupluaim53.a
+./Lua53/libiupluaweb53.so
+./Lua53/libiupluascripterdlg53.a
+./Lua53/libiupluacd53.a
+./Lua53/libiuplua_scintilla53.a
+./libiup_plot.so
+#+end_example

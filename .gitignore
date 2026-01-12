@@ -1,0 +1,26 @@
+# Emacs backup and temporary files
+*~
+\#*#
+.#*
+*.elc
+auto-save-list
+tramp
+
+# generic temp
+dist/
+
+# org environ
+README.*
+!README.org
+
+# js environ
+node_modules/
+
+# PHP environ
+vendor/
+
+# .so .a
+_so/
+
+archives/
+repos/**

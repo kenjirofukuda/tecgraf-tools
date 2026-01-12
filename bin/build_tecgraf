@@ -1,0 +1,135 @@
+#!/usr/bin/env bash
+# -*- bash -*-
+# set -e
+
+# @see
+#  https://www.tecgraf.puc-rio.br/im
+#  https://www.tecgraf.puc-rio.br/cd
+#  https://www.tecgraf.puc-rio.br/iup
+
+FORCE_BUILD=Yes
+export DBG=Yes
+
+FixPermission() {
+  for n in install* config_lua_module; do
+    if [ -f $n ]; then
+      chmod 755 $n
+    fi
+  done
+}
+
+SudoInstall() {
+  for n in install* config_lua_module; do
+    if [ -f $n ]; then
+      sudo USE_LUA53=Yes ./$n
+    fi
+  done
+}
+
+. "$HOME/Nextcloud/Private/Keys/bashrc_iup"
+. "$HOME/Nextcloud/Private/Keys/bashrc_iup_cbuild"
+
+if ! command -v lua >/dev/null 2>&1 ; then
+  echo "ERROR: lua not installed"
+  exit 1
+fi
+
+if [ ! -v "TECTOOLS_HOME" ]; then
+  echo "ERROR: TECTOOLS_HOME environment variable not set."
+  url="https://www.tecgraf.puc-rio.br/iup/en/guide.html#buildlib"
+  echo "@see $url"
+  xdg-open "$url"
+  exit 1
+fi
+
+if [ ! -d "$TECTOOLS_HOME" ]; then
+  echo "ERROR: directory not found: $TECTOOLS_HOME"
+  exit 1
+fi
+echo "Ready to build environment"
+cd "$TECTOOLS_HOME"
+echo -n "PWD: "
+pwd
+[ -d im ]  || (echo "im not found"; exit 1)
+[ -d cd ]  || (echo "cd not found"; exit 1)
+[ -d iup ] || (echo "iup not found"; exit 1)
+
+ls -d lua* > /dev/null 2>&1  || (echo "not found any of lua5.1 lua52 lua53 lua54" && exit 1)
+
+echo "============= lua53 ====================="
+cd "$TECTOOLS_HOME/lua53"
+echo -n "PWD: "
+pwd
+make
+mkdir -p lib/Linux612_64
+if [ -f src/liblua.a ]; then
+  cp src/liblua.a lib/Linux612_64/liblua53.a
+fi
+
+echo "============= /lua53 ===================="
+echo
+
+IM_BUILD=
+if [ "$IMBUILD" != "" ]; then
+echo "============= IM ====================="
+cd "$TECTOOLS_HOME/im"
+echo -n "PWD: "
+pwd
+[  "$FORCE_BUILD" != "" ] && rm -rf obj lib
+USE_MOTIF=Yes USE_GTK3= make -j4 -e
+FixPermission
+SudoInstall
+
+echo "============= /IM ===================="
+echo
+fi
+
+CD_BUILD=
+if [ "$CD_BUILD" != "" ]; then
+echo "============= CD ====================="
+FORCE_BUILD=Yes
+cd "$TECTOOLS_HOME/cd"
+echo -n "PWD: "
+pwd
+[  "$FORCE_BUILD" != "" ] && rm -rf obj lib
+USE_MOTIF=Yes \
+  USE_X11=Yes \
+  USE_GTK3=Yes \
+  USE_IUP=Yes \
+  USE_GLUT=Yes \
+  USE_IMLUA=Yes \
+  USE_CDLUA= \
+  USE_IUPLUA= \
+  USE_LUA_VERSION=53 \
+  USE_LUA53=Yes make -j4
+FixPermission
+[  "$FORCE_BUILD" != "" ] && SudoInstall
+
+echo "============= /CD ===================="
+echo
+fi
+
+echo "============= IUP ====================="
+FORCE_BUILD=Yes
+cd "$TECTOOLS_HOME/iup"
+echo -n "PWD: "
+pwd
+[  "$FORCE_BUILD" != "" ] && rm -rf obj lib
+USE_MOTIF=Yes \
+  USE_GTK3=Yes \
+  USE_X11=Yes \
+  USE_IUP=Yes \
+  USE_GLUT=Yes \
+  USE_IMLUA= \
+  USE_CDLUA= \
+  USE_IUPLUA= \
+  USE_LUA_VERSION=53 \
+  USE_LUA53=Yes make -j4
+FixPermission
+[  "$FORCE_BUILD" != "" ] && SudoInstall
+
+echo "============= /IUP ===================="
+echo
+
+echo done
+exit 0

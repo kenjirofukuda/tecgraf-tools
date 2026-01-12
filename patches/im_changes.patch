@@ -1,0 +1,15 @@
+Index: src/libjasper2/base/jas_stream.c
+===================================================================
+--- src/libjasper2/base/jas_stream.c	(revision 820)
++++ src/libjasper2/base/jas_stream.c	(working copy)
+@@ -74,5 +74,8 @@
+ /* The configuration header file should be included first. */
+ #include "jasper/jas_config.h"
+ 
++// add: kenjirofukuda@gmail.com
++#define JAS_HAVE_UNISTD_H 1
++
+ #include <assert.h>
+ #if defined(JAS_HAVE_FCNTL_H)
+ #include <fcntl.h>
+ 

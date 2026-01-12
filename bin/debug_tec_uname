@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# -*- bash -*-
+
+echo PWD: $(pwd)
+
+if [ ! -f ./tec_uname ]; then
+    echo "ERROR: tec_uname not found in current directory."
+    exit 1
+fi
+
+echo start
+
+. ./tec_uname
+
+ComputeTecUname
+ComputeSystemPaths
+ComputeLuaVersion
+#PrintInfo
+var_names=$(egrep '^\s*[A-Z]+[A-Z_0-9]*=' ./tec_uname | cut -f1 -d= | tr -d ' ' | sort | uniq)
+rm -f /tmp/foo.sh
+cat <<EOM > /tmp/foo.sh
+#!/usr/bin/env bash
+. ./tec_uname
+ComputeTecUname
+ComputeSystemPaths
+ComputeLuaVersion
+EOM
+for n in $var_names
+do
+    echo echo $n='$'"${n}" >> /tmp/foo.sh
+done
+chmod 755 /tmp/foo.sh
+/tmp/foo.sh
+
+
+

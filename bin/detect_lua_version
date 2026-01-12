@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# -*- bash -*-
+
+LUA_DETECT_VER=5.1
+for v in 5.5 5.4 5.3 5.2 5.1 
+do
+  if  command -v lua"${v}" > /dev/null 2>&1  ; then
+    LUA_DETECT_VER=$v
+    break
+  fi
+done
+
+
+echo $LUA_DETECT_VER

@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# -*- bash -*-
+
+TARGET=/usr/lib/libiup.so
+MOTSO=/usr/lib/libiupmot.so
+GTKSO=/usr/lib/libiup.so.gtk
+
+if [ ! -f "$TARGET" ]; then
+    echo "ERROR: file not found: $TARGET"
+    exit 1
+fi
+
+if [ ! -f "$MOTSO" ]; then
+    echo "ERROR: motif shared object not found: $MOTSO"
+    exit 1
+fi
+
+if [ -h "$TARGET" ]; then
+    echo "is symbolic: file : $TARGET"
+    resolved=$(readlink "${TARGET}")
+    resolved=$(basename "${resolved}")
+    if [ "$resolved" == "libiup.so.gtk" ]; then
+	echo "Already activated Gtk"
+	exit 0
+    else
+	sudo rm -f "$TARGET"
+	sudo ln -s "$GTKSO" "$TARGET"
+	echo "Now activated Gtk"
+	exit 0
+    fi
+else
+    echo "$TARGET is regular file. must be back up"
+    sudo cp -f "$TARGET" "$GTKSO"  
+    sudo rm -f "$TARGET"
+    sudo ln -s "$GTKSO" "$TARGET"
+    echo "switch to symbolick linked Gtk"
+    exit 0
+fi
+sudo ldconfig
+echo done
+exit 0
+

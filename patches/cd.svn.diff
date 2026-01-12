@@ -1,0 +1,26 @@
+Index: src/cdpdf.mak
+===================================================================
+--- src/cdpdf.mak	(revision 901)
++++ src/cdpdf.mak	(working copy)
+@@ -8,7 +8,7 @@
+ 
+ INCLUDES = . sim $(PDFLIB)/include
+ DEPENDDIR = dep
+-LINK_PDFLIB = Yes
++LINK_PDFLIB = No
+ 
+ USE_CD = YES
+ CD = ..
+Index: tecmake.mak
+===================================================================
+--- tecmake.mak	(revision 901)
++++ tecmake.mak	(working copy)
+@@ -251,7 +251,7 @@
+ 
+ #---------------------------------#
+ # Compilation Flags
+-STDFLAGS := -Wall
++STDFLAGS := -Wall -Wno-incompatible-pointer-types
+ STDDEFS  := -DTEC_UNAME=$(TEC_UNAME) -DTEC_SYSNAME=$(TEC_SYSNAME) -D$(TEC_SYSNAME)=$(TEC_SYSRELEASE) -D$(TEC_BYTEORDER) -D$(TEC_WORDSIZE) -DFUNCPROTO=15
+ STDINCS  :=
+ OPTFLAGS := -O2

@@ -1,0 +1,32 @@
+  145   xbps-query -Rs pango
+  146  xi pango pango-xft pango-devel
+  150   xbps-query -Rs gtk3
+  151   xbps-query -Rs gtk3 | grep devel
+  152   xbps-query -Rs gtk | grep -i devel
+  153   xbps-query -Rs gtk+3 | grep -i devel
+  154  xi gtk+3-devel
+  158   xbps-query -Rs gtk+3 | grep -i devel
+  159   xbps-query -Rs gtk | less
+  160  xi gtk+3-devel
+  161  xi libXcursor-devel libXdamage-devel libXcomposite-devel
+  162  xi gtk+3-devel
+  163  xi -Su
+  164  xi gtk+3-devel
+  166   xbps-query -Rs notify
+  167  xi libnotify libnotify-devel
+  169   xbps-query -Rs webkit
+  170  xi libwebkit2gtk41 libwebkit2gtk41-devel
+  189   xbps-query -Rs imake
+  190  xi imake
+  210   xbps-query -Rs iup
+  211   xbps-query -Rs svn
+  212   xbps-query -Rs subversion
+  217  xi subversion
+  221   xbps-query -Rs xedit
+  222   xi xedit
+  325  xq emacs
+  326  xi emacs-gtk3
+  372  sudo xbps-install -Sy libgomp libgomp-devel
+  392  xq nedit
+  393  xq emacs
+  398  xq japan

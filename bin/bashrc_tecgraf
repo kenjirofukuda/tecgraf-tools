@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# -*- bash -*-
+export TECGRAF_REPO_ROOT="$(dirname $(dirname ${BASH_SOURCE[0]}))"
+export PATH="${TECGRAF_REPO_ROOT}/bin:${PATH}"
+export TECTOOLS_HOME="${TECGRAF_REPO_ROOT}/repos"
+CMD_FILE="${TECGRAF_REPO_ROOT}/bin/detect_lua_version"
+chmod 755 $CMD_FILE
+LV=$($CMD_FILE)             # ex. 5.1
+SLV=$(echo $LV | tr -d .)   # ex. 51
+export LUA_BIN=/usr/bin
+#export LUA_SFX=$LV
+export USE_LUA_VERSION="${LV}"
+export LUA_INC="/usr/include/lua${LV}"
+export USE_LUA${SLV}=Yes
+export USE_PKGCONFIG=Yes
+
+export IM_INC=/usr/include/im
+#export IM_LIB=/usr/lib
+export CD_INC=/usr/include/cd
+#export CD_LIB=/usr/lib
+export IUP_INC=/usr/include/iup
+#export IUP_LIB=/usr/lib
+
+export USE_GTK3=Yes
