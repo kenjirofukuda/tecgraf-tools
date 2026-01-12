@@ -35,16 +35,6 @@
   cat /tmp/target.env
 #+end_src
 
-#+RESULTS:
-: export REMOTE_IUP_GO_REPO="https://github.com/gen2brain/iup-go.git"
-: export LOCAL_IUP_GO_REPO="${TECTOOLS_HOME}/iup-go"
-: 
-: export USE_GTK=Yes
-: export USE_GTK3=Yes
-: export USE_MOTIF=
-: export USE_X11=
-: export EXCLUDE_TARGETS="cdpdf cdluapdf5"
-
 ** TARGET = MOTIF
 #+begin_src bash 
   cat <<"EOM" > /tmp/target.env
@@ -60,22 +50,46 @@
   cat /tmp/target.env
 #+end_src
 
-#+RESULTS:
-| LSP_USE_PLISTS=true |
-| USE_X11=Yes         |
-| USE_LUA53=Yes       |
-| USE_GTK=            |
-| USE_MOTIF=Yes       |
-| USE_LUA_VERSION=5.3 |
-| USE_PKGCONFIG=Yes   |
-| USER=kenjiro        |
-| USE_GTK3=           |
 
 * LUA
 基本的に、コマンドの実行自身はディストリビューションの標準パッケージンを使用する。
 ここで必要なのはオブジェクトファイル群である。
 
 - https://sourceforge.net/projects/luabinaries/files/5.4.2/Docs%20and%20Sources/lua-5.4.2_Sources.tar.gz/download
+
+** lua downloads
+#+begin_src bash :results output
+  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . /tmp/target.env
+  SLV=$(echo $USE_LUA_VERSION | tr -d '.')
+  # echo $SLV
+  lua_dir="${TECTOOLS_HOME}/lua${SLV}"
+  if [ ! -d "$lua_dir" ]; then
+
+      SRC_URL="https://sourceforge.net/projects/luabinaries/files/5.1.5/Docs%20and%20Sources/lua5_1_5_Sources.tar.gz/download"
+      if [ "${USE_LUA_VERSION}" == "5.4" ]; then
+  	SRC_URL="https://sourceforge.net/projects/luabinaries/files/5.4.2/Docs%20and%20Sources/lua-5.4.2_Sources.tar.gz/download"
+      fi
+      if [ "${USE_LUA_VERSION}" == "5.3" ]; then
+  	SRC_URL="https://sourceforge.net/projects/luabinaries/files/5.3.6/Docs%20and%20Sources/lua-5.3.6_Sources.tar.gz/download"
+      fi
+      if [ "${USE_LUA_VERSION}" == "5.2" ]; then
+  	SRC_URL="https://sourceforge.net/projects/luabinaries/files/5.2.4/Docs%20and%20Sources/lua-5.2.4_Sources.tar.gz/download"
+      fi
+      basename=$(echo "${SRC_URL}" | cut -f 9 -d '/')
+      echo $basename
+      dest_dir="${TECGRAF_REPO_ROOT}/archives"
+      dest_path="${dest_dir}/${basename}"
+      if [ ! -f "${dest_path}" ]; then
+  	mkdir -p "${dest_dir}"
+  	curl -L -o "${dest_path}" "${SRC_URL}"
+      fi
+      tar -xzf "${dest_path}" -C "${TECTOOLS_HOME}"
+  fi
+  cd "${lua_dir}/src"
+  make -f Makefile.tecmake lualib
+#+end_src
+
 
 ** lua install (deprecated)
 #+begin_src bash :results output
@@ -147,9 +161,6 @@ version 5.4の場合
   echo sudo ln -s "${SRC_PATH}" "${DST_PATH}"
 #+end_src
 
-#+RESULTS:
-: sudo ln -s /usr/bin/lua5.4 /usr/bin/lua54
-
 
 ** lua build
 #+begin_src bash :session tecgraf-session
@@ -190,21 +201,10 @@ version 5.4の場合
   exit 0
 #+end_src
 
-#+RESULTS:
-| /home/kenjiro/Documents/github/kenjirofukuda/tecgraf-tools/repos |         |            |
-| im                                                               | already | checkuout. |
 
 #+begin_src bash 
 env | grep USE_ | sort
 #+end_src
-
-#+RESULTS:
-| LSP_USE_PLISTS=true |
-| USE_GTK3=Yes        |
-| USE_LUA54=Yes       |
-| USE_LUA_VERSION=5.4 |
-| USE_PKGCONFIG=Yes   |
-
 
 ** patch to im
 #+begin_src bash 
@@ -222,16 +222,12 @@ env | grep USE_ | sort
   exit 0
 #+end_src
 
-#+RESULTS:
-: TECTOOLS_HOME=/home/kenjiro/Documents/github/kenjirofukuda/tecgraf-tools/repos
-
 
 ** clean im
 #+begin_src bash 
   cd  $TECTOOLS_HOME/im && rm -rf obj lib
 #+end_src
 
-#+RESULTS:
 
 ** build im
 #+begin_src bash :results list
@@ -298,7 +294,6 @@ env | grep USE_ | sort
   cd  $TECTOOLS_HOME/ftgl && rm -rf obj lib
 #+end_src
 
-#+RESULTS:
 
 ** build ftgl
 #+begin_src bash :results list :session tecgraf-session
@@ -309,8 +304,6 @@ env | grep USE_ | sort
   make -e -j$(nproc) &> /tmp/ftgl.log
 #+end_src
 
-#+RESULTS:
-- LUA_BIN=/usr/bin
 
 ** backup ftgl
 #+begin_src bash 
@@ -344,7 +337,6 @@ env | grep USE_ | sort
   sudo -E cp $TECTOOLS_HOME/ftgl/lib/Linux612_64/libftgl.so /usr/lib/
 #+end_src
 
-#+RESULTS:
 
 ** patch to cd
 #+begin_src bash
@@ -364,9 +356,6 @@ env | grep USE_ | sort
   exit 0
 #+end_src
 
-#+RESULTS:
-| patching | file | src/cdpdf.mak |
-| patching | file | tecmake.mak   |
 
 ** clean cd
 #+begin_src bash
@@ -376,7 +365,6 @@ env | grep USE_ | sort
   cd  $TECTOOLS_HOME/cd && rm -rf obj lib
 #+end_src
 
-#+RESULTS:
 
 ** build cd
 #+begin_src bash :results output
@@ -388,6 +376,7 @@ env | grep USE_ | sort
   cd  $TECTOOLS_HOME/cd || (echo not found cd; exit 1)
   make -e -j$(nproc) &> /tmp/cd.log
 #+end_src
+
 
 ** backup cd
 #+begin_src bash :results output
@@ -411,8 +400,6 @@ env | grep USE_ | sort
   exit 0
 #+end_src
 
-#+RESULTS:
-: iup already checkuout.
 
 ** patch to iup
 #+begin_src bash
@@ -446,9 +433,6 @@ env | grep USE_ | sort
   fi
 #+end_src
 
-#+RESULTS:
-: iup-go already checkuout.
-
 
 ** overwrite iup-go
 #+begin_src bash
@@ -462,11 +446,12 @@ env | grep USE_ | sort
       exit 1
   fi
   if [ ! -d "$DST" ]; then
-      echo "not found $SRC"
+      echo "not found $DST"
       exit 1
   fi
-  rsync -av -ignore-existing  $SRC/ $DST/
+  rsync -av $SRC/ $DST/
 #+end_src
+
 
 
 #+begin_src bash
@@ -480,10 +465,10 @@ env | grep USE_ | sort
       exit 1
   fi
   if [ ! -d "$DST" ]; then
-      echo "not found $SRC"
+      echo "not found $DST"
       exit 1
   fi
-  rsync -av -ignore-existing $SRC/ $DST/
+  rsync -av $SRC/ $DST/
 #+end_src
 
 
@@ -508,7 +493,6 @@ env | grep USE_ | sort
   cd  $TECTOOLS_HOME/iup && rm -rf obj lib
 #+end_src
 
-#+RESULTS:
 
 ** build iup
 #+begin_src bash :results output
@@ -522,119 +506,11 @@ env | grep USE_ | sort
   cd  $TECTOOLS_HOME/iup && make -e -j$(nproc) &> /tmp/iup.log
 #+end_src
 
-#+RESULTS:
-: /home/kenjiro/Documents/github/kenjirofukuda/tecgraf-tools/repos/iup
-: LUA_BIN=/usr/bin
-: USE_LUA54=Yes
-: USE_LUA_VERSION=5.4
-: LUA_INC=/usr/include/lua5.4
-: TECTOOLS_HOME=/home/kenjiro/Documents/github/kenjirofukuda/tecgraf-tools/repos
-: TECGRAF_REPO_ROOT=/home/kenjiro/Documents/github/kenjirofukuda/tecgraf-tools
-
 
 ** backup iup
-#+begin_src bash :results output :session tecgraf-session
-  backup_tecgraf_build_result.sh iup
+#+begin_src bash :results output
+  set -ev
+  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . /tmp/target.env
+  backup_tecgraf_build_result iup
 #+end_src
-
-#+RESULTS:
-#+begin_example
-iup_motif
-./lib/Linux612_64
-./
-./libiuptuio.a
-./libiup_plot.a
-./libiupgl.so
-./libiupcd.a
-./libiupmot.so
-./libiupcd.so
-./libiuptuio.so
-./libiup_mglplot.a
-./libiupim.a
-./libiup_mglplot.so
-./libiupglcontrols.a
-./libiupgl.a
-./libiupimglib.a
-./libiupglcontrols.so
-./libiupim.so
-./libiupimglib.so
-./libiupmot.a
-./libiupcontrols.a
-./libiupcontrols.so
-./Lua53/
-./Lua53/libiupluascripterdlg53.so
-./Lua53/libiuplua53.so
-./Lua53/libiupluagl53.so
-./Lua53/libiupluagl53.a
-./Lua53/libiuplua_mglplot53.so
-./Lua53/libiupluacd53.so
-./Lua53/libiupluaimglib53.a
-./Lua53/libiuplua53.a
-./Lua53/libiupluaim53.so
-./Lua53/libiupluacontrols53.so
-./Lua53/libiuplua_mglplot53.a
-./Lua53/libiupluacontrols53.a
-./Lua53/libiupluaglcontrols53.a
-./Lua53/libiuplua_scintilla53.so
-./Lua53/libiuplua_plot53.a
-./Lua53/libiuplua_plot53.so
-./Lua53/libiupluaimglib53.so
-./Lua53/libiupluaweb53.a
-./Lua53/libiupluaglcontrols53.so
-./Lua53/libiupluatuio53.so
-./Lua53/libiupluatuio53.a
-./Lua53/libiupluaim53.a
-./Lua53/libiupluaweb53.so
-./Lua53/libiupluascripterdlg53.a
-./Lua53/libiupluacd53.a
-./Lua53/libiuplua_scintilla53.a
-./libiup_plot.so
-./
-./libiuptuio.a
-./libiup_plot.a
-./libiupgl.so
-./libiupcd.a
-./libiupmot.so
-./libiupcd.so
-./libiuptuio.so
-./libiup_mglplot.a
-./libiupim.a
-./libiup_mglplot.so
-./libiupglcontrols.a
-./libiupgl.a
-./libiupimglib.a
-./libiupglcontrols.so
-./libiupim.so
-./libiupimglib.so
-./libiupmot.a
-./libiupcontrols.a
-./libiupcontrols.so
-./Lua53/
-./Lua53/libiupluascripterdlg53.so
-./Lua53/libiuplua53.so
-./Lua53/libiupluagl53.so
-./Lua53/libiupluagl53.a
-./Lua53/libiuplua_mglplot53.so
-./Lua53/libiupluacd53.so
-./Lua53/libiupluaimglib53.a
-./Lua53/libiuplua53.a
-./Lua53/libiupluaim53.so
-./Lua53/libiupluacontrols53.so
-./Lua53/libiuplua_mglplot53.a
-./Lua53/libiupluacontrols53.a
-./Lua53/libiupluaglcontrols53.a
-./Lua53/libiuplua_scintilla53.so
-./Lua53/libiuplua_plot53.a
-./Lua53/libiuplua_plot53.so
-./Lua53/libiupluaimglib53.so
-./Lua53/libiupluaweb53.a
-./Lua53/libiupluaglcontrols53.so
-./Lua53/libiupluatuio53.so
-./Lua53/libiupluatuio53.a
-./Lua53/libiupluaim53.a
-./Lua53/libiupluaweb53.so
-./Lua53/libiupluascripterdlg53.a
-./Lua53/libiupluacd53.a
-./Lua53/libiuplua_scintilla53.a
-./libiup_plot.so
-#+end_example
