@@ -1,0 +1,14 @@
+#+title: tecgraf-tools
+#+author: kenjirofukuda@gmail.com
+#+options: toc:nil num:nil ^:nil ^:{}
+#+HTML_HEAD_EXTRA: <style> .figure p {text-align: left;}</style>
+#+HTML_HEAD_EXTRA: <script src="https://cdn.jsdelivr.net/npm/mermaid@11.12.0/dist/mermaid.min.js"></script>
+
+* Install
+
+Put something like this in your $HOME/.bashrc or $HOME/.zshrc:
+
+#+begin_src bash :dir (file-name-directory (buffer-file-name))
+ . {path-to-repository}/bin/bashrc_tecgraf
+#+end_src
+
