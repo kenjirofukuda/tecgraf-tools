@@ -5,8 +5,17 @@ if [ "$#" -eq 0 ]; then
    exit 1
 fi
 
+if [ -z "$TECTOOLS_HOME" ]; then
+    echo "Environment variable not set: TECTOOLS_HOME"
+    exit 1
+fi
+if [ -z "$TECGRAF_REPO_ROOT" ]; then
+    echo "Environment variable not set: TECGRAF_REPO_ROOT"
+    exit 1
+fi
+
 pkg=$1
-dir="$HOME/Nextcloud/tecgraf/repos/$pkg"
+dir="${TECTOOLS_HOME}/${pkg}"
 if [ ! -d "$dir" ]; then
    echo "ERROR: directory not found ${dir}"
    exit 1
@@ -26,11 +35,14 @@ baselib="./lib/$TEC_UNAME"
 # echo $baselib
 # env | grep USE_ | sort
 basename=""
+so_dir=""
 if [[ ! -z  "$USE_MOTIF"  ]]; then
     basename="${pkg}_motif"
+    so_dir="${TECGRAF_REPO_ROOT}/_so/motif/${pkg}"
 fi
 if [[ ! -z  "$USE_GTK"  ]]; then
     basename="${pkg}_gtk"
+    so_dir="${TECGRAF_REPO_ROOT}/_so/gtk/${pkg}"
 fi
 echo $basename
 if [[  -z "$basename" ]]; then
@@ -39,7 +51,7 @@ if [[  -z "$basename" ]]; then
 fi
 echo $baselib
 tar -czvf /tmp/$basename.gz  -C $baselib .
-mkdir -p _so/$basename
-cd _so/$basename
+mkdir -p "$so_dir"
+cd "$so_dir"
 tar -zxvf /tmp/$basename.gz
 exit 0

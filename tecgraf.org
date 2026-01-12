@@ -9,7 +9,8 @@
 - CD :: https://www.tecgraf.puc-rio.br/cd/
 - IM :: https://www.tecgraf.puc-rio.br/im/
 - TECMAKE :: https://www.tecgraf.puc-rio.br/tecmake/en/main.html
-
+- Lua :: https://luabinaries.sourceforge.net/download.html
+  
 * current SVN version
 
 | im   | r820  |
@@ -20,33 +21,43 @@
 
 * TARGET
 ** TARGET = GTK
-#+begin_src bash :results output :session tecgraf-session
+#+begin_src bash :results output 
+  cat <<"EOM" > /tmp/target.env
+  export REMOTE_IUP_GO_REPO="https://github.com/gen2brain/iup-go.git"
+  export LOCAL_IUP_GO_REPO="${TECTOOLS_HOME}/iup-go"
+  
   export USE_GTK=Yes
   export USE_GTK3=Yes
   export USE_MOTIF=
   export USE_X11=
-  export EXCLUDE_TARGETS="cdpdf cdluapdf5" 
-  env | grep USE_ | sort
+  export EXCLUDE_TARGETS="cdpdf cdluapdf5"
+  EOM
+  cat /tmp/target.env
 #+end_src
 
 #+RESULTS:
-: LSP_USE_PLISTS=true
-: USE_GTK3=Yes
-: USE_GTK=Yes
-: USE_LUA53=Yes
-: USE_LUA_VERSION=5.3
-: USE_MOTIF=
-: USE_PKGCONFIG=Yes
-: USE_X11=
+: export REMOTE_IUP_GO_REPO="https://github.com/gen2brain/iup-go.git"
+: export LOCAL_IUP_GO_REPO="${TECTOOLS_HOME}/iup-go"
+: 
+: export USE_GTK=Yes
+: export USE_GTK3=Yes
+: export USE_MOTIF=
+: export USE_X11=
+: export EXCLUDE_TARGETS="cdpdf cdluapdf5"
 
 ** TARGET = MOTIF
-#+begin_src bash :session tecgraf-session
+#+begin_src bash 
+  cat <<"EOM" > /tmp/target.env
+  export REMOTE_IUP_GO_REPO="https://github.com/gen2brain/iup-go.git"
+  export LOCAL_IUP_GO_REPO="${TECTOOLS_HOME}/iup-go"
+  
   export USE_GTK=
   export USE_GTK3=
   export USE_MOTIF=Yes
   export USE_X11=Yes
   export EXCLUDE_TARGETS="cdpdf cdluapdf5 iupweb iup_scintilla iupvled" 
-  env | grep USE_ | sort
+  EOM
+  cat /tmp/target.env
 #+end_src
 
 #+RESULTS:
@@ -60,128 +71,192 @@
 | USER=kenjiro        |
 | USE_GTK3=           |
 
+* LUA
+基本的に、コマンドの実行自身はディストリビューションの標準パッケージンを使用する。
+ここで必要なのはオブジェクトファイル群である。
+
+- https://sourceforge.net/projects/luabinaries/files/5.4.2/Docs%20and%20Sources/lua-5.4.2_Sources.tar.gz/download
+
+** lua install (deprecated)
+#+begin_src bash :results output
+  echo deprecated install lua aooficial repository
+  echo please install luabinaries version.
+  exit 0
+  if [ -z "$TECTOOLS_HOME" ]; then
+      echo "Environment variable not set: TECTOOLS_HOME"
+      exit 1
+  fi
+  if [ -z "$TECGRAF_REPO_ROOT" ]; then
+      echo "Environment variable not set: TECGRAF_REPO_ROOT"
+      exit 1
+  fi
+  LUA_SLV=$(echo $USE_LUA_VERSION | tr -d '.')
+  # echo $LUA_SLV
+  lua_dir="${TECTOOLS_HOME}/lua${LUA_SLV}"
+  if [ -d "$lua_dir" ]; then
+      echo "already extracted $(basename $lua_dir)"
+      exit 0
+  fi
+  long_ver=$(lua -v | cut -f2 -d' ')
+  echo TODO extract $long_ver
+  basename="lua-${long_ver}.tar.gz"
+  url="https://www.lua.org/ftp/${basename}"
+  echo start download $url
+  archive_download_dir="${TECGRAF_REPO_ROOT}/archives"
+  archive="$archive_download_dir/${basename}"
+  mkdir -p "$archive_download_dir"
+  cd "$archive_download_dir"
+  if [ -f "$archive" ]; then
+      echo "already downloaded $basename"
+  else
+      curl -O "$url"
+      ls -la 
+  fi
+  mkdir -p "${lua_dir}"
+  tar -xzf "${archive}" --strip-components=1 -C "${lua_dir}/"
+  exit 0
+#+end_src
+
+** シンボリックリンクによる不具合回避
+サフィックス命名規則にブレが有り、実態と一致していないところがあるのでシンボリックリンクでカバーする。
+version 5.4の場合
+
+| 実在             | /usr/bin/lua5.4 |
+| スクリプトが要求 | /usr/bin/lua54  |
+
+#+begin_src bash :results output
+  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . /tmp/target.env
+  if [ -z "${USE_LUA_VERSION}" ]; then
+      echo "Environment variable not set: USE_LUA_VERSION"
+      exit 1
+  fi
+  SLV=$(echo $USE_LUA_VERSION | tr -d '.')
+  SRC_CMD="lua${USE_LUA_VERSION}"
+  DST_CMD="lua${SLV}"
+  SRC_PATH="$(command -v $SRC_CMD)"
+  DST_PATH="$(dirname $SRC_PATH)/${DST_CMD}"
+  if ! command -v $SRC_CMD &> /dev/null; then
+     echo "command not found $DST_CMD"
+     exit 1
+  fi
+  if command -v $DST_CMD &> /dev/null; then
+     echo "already exists $DST_CMD"
+     exit 1
+  fi
+  echo sudo ln -s "${SRC_PATH}" "${DST_PATH}"
+#+end_src
+
+#+RESULTS:
+: sudo ln -s /usr/bin/lua5.4 /usr/bin/lua54
+
+
+** lua build
+#+begin_src bash :session tecgraf-session
+  if [ -z "$TECTOOLS_HOME" ]; then
+      echo "Environment variable not set: TECTOOLS_HOME"
+      exit 1
+  fi
+  if [ -z "$TECGRAF_REPO_ROOT" ]; then
+      echo "Environment variable not set: TECGRAF_REPO_ROOT"
+      exit 1
+  fi
+  LUA_SLV=$(echo $USE_LUA_VERSION | tr -d '.')
+  # echo $LUA_SLV
+  lua_dir="${TECTOOLS_HOME}/lua${LUA_SLV}"
+  if [ ! -d "$lua_dir" ]; then
+      echo "ERROR: directory not found $lua_dir"
+      exit 1
+  fi
+  echo build
+  cd "$lua_dir"
+  make
+#+end_src
+
+
 * IM
 - @see https://www.tecgraf.puc-rio.br/im/en/guide.html
 
 ** svn install
 - @see https://www.tecgraf.puc-rio.br/im/en/svn.html
-#+begin_src bash
-  if [ -d $TECTOOLS_HOME/im ]; then
+#+begin_src bash 
+  mkdir -p "$TECTOOLS_HOME"
+  if [ -d "${TECTOOLS_HOME}/im" ]; then
       echo "im already checkuout."
   else
-      cd $TECTOOLS_HOME
+      cd "$TECTOOLS_HOME"
       svn checkout -r820 svn://svn.code.sf.net/p/imtoolkit/im/trunk/im im
   fi
   exit 0
 #+end_src
 
 #+RESULTS:
-: im already checkuout.
+| /home/kenjiro/Documents/github/kenjirofukuda/tecgraf-tools/repos |         |            |
+| im                                                               | already | checkuout. |
+
+#+begin_src bash 
+env | grep USE_ | sort
+#+end_src
+
+#+RESULTS:
+| LSP_USE_PLISTS=true |
+| USE_GTK3=Yes        |
+| USE_LUA54=Yes       |
+| USE_LUA_VERSION=5.4 |
+| USE_PKGCONFIG=Yes   |
+
+
+** patch to im
+#+begin_src bash 
+  if [ ! -d "${TECTOOLS_HOME}/im" ]; then
+      echo "im not found."
+      exit 1
+  fi
+  patch_file="${TECGRAF_REPO_ROOT}/patches/im.svn.diff"
+  if [ ! -f "$patch_file" ]; then
+      echo "patchfile not found."
+      exit 1
+  fi
+  cd "${TECTOOLS_HOME}/im"
+  patch -p0 < "$patch_file"
+  exit 0
+#+end_src
+
+#+RESULTS:
+: TECTOOLS_HOME=/home/kenjiro/Documents/github/kenjirofukuda/tecgraf-tools/repos
+
 
 ** clean im
-#+begin_src bash
+#+begin_src bash 
   cd  $TECTOOLS_HOME/im && rm -rf obj lib
 #+end_src
 
 #+RESULTS:
 
 ** build im
-#+begin_src bash :results list :session tecgraf-session
-  . "$TECGRAF_REPO_ROOT/bin/bashrc_iup"
-  env | egrep  '(LUA|TEC)'
+#+begin_src bash :results list
+  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . /tmp/target.env
   cd  $TECTOOLS_HOME/im || echo not found im
   debug_tec_uname
+  env | egrep  '(LUA|TEC)'
   make -e -j$(nproc) &> /tmp/im.log
 #+end_src
 
-#+RESULTS:
-- LUA_BIN=/usr/bin
-- USE_LUA53=Yes
-- USE_LUA_VERSION=5.3
-- LUA_INC=/usr/include/lua5.3
-- TECTOOLS_HOME=/home/kenjiro/Nextcloud/tecgraf/repos
-- LUA_SUFFIX=
-- PWD:
-  /home/kenjiro/Nextcloud/tecgraf/repos/im
-- start
-- BUILD_64=Yes
-- CYGW=Linux
-- GCCVER=
-- LUA_SFX=53
-- LUA_VER=5.3
-- TEC_DIST=VoidLinuxrolling
-- TEC_DISTNAME=VoidLinux
-- TEC_DISTVERSION=rolling
-- TEC_LUA_LIB=/usr/lib64/lua/
-- TEC_SYSARCH=x64
-- TEC_SYSMINOR=12
-- TEC_SYSNAME=Linux
-- TEC_SYSTEM_INC=/usr/include
-- TEC_SYSTEM_LIB=/usr/lib64
-- TEC_SYSVERSION=6
-- TEC_UNAME=Linux612_64
 
 ** backup im
-#+begin_src bash :results output :session tecgraf-session
-  backup_tecgraf_build_result.sh im
+#+begin_src bash 
+  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . /tmp/target.env
+  backup_tecgraf_build_result im
 #+end_src
-
-#+RESULTS:
-#+begin_example
-im_motif
-./lib/Linux612_64
-./
-./libim_process_omp.so
-./libim_fftw3.a
-./libim.so
-./libim_process_omp.a
-./libim_process.so
-./libim.a
-./libim_jp2.so
-./libim_process.a
-./libim_fftw3.so
-./Lua53/
-./Lua53/libimlua53.so
-./Lua53/libimlua_process_omp53.so
-./Lua53/libimlua_fftw353.so
-./Lua53/libimlua_process53.so
-./Lua53/libimlua53.a
-./Lua53/libimlua_fftw353.a
-./Lua53/libimlua_process53.a
-./Lua53/libimlua_process_omp53.a
-./Lua53/libimlua_jp253.a
-./Lua53/libimlua_jp253.so
-./libim_jp2.a
-./
-./libim_process_omp.so
-./libim_fftw3.a
-./libim.so
-./libim_process_omp.a
-./libim_process.so
-./libim.a
-./libim_jp2.so
-./libim_process.a
-./libim_fftw3.so
-./Lua53/
-./Lua53/libimlua53.so
-./Lua53/libimlua_process_omp53.so
-./Lua53/libimlua_fftw353.so
-./Lua53/libimlua_process53.so
-./Lua53/libimlua53.a
-./Lua53/libimlua_fftw353.a
-./Lua53/libimlua_process53.a
-./Lua53/libimlua_process_omp53.a
-./Lua53/libimlua_jp253.a
-./Lua53/libimlua_jp253.so
-./libim_jp2.a
-#+end_example
 
 
 * CD
 - @see https://www.tecgraf.puc-rio.br/cd/en/guide.html
 ** svn install
 - @see https://www.tecgraf.puc-rio.br/cd/en/svn.html
-#+begin_serc bash
+#+begin_src bash
   if [ -d $TECTOOLS_HOME/cd ]; then
       echo "cd already checkuout."
   else
@@ -198,27 +273,28 @@ im_motif
   exit 0
 #+end_src
 
-#+RESULTS:
-| cd   | already | checkuout. |
-| ftgl | already | checkuout. |
 
 ** patch to ftgl
 #+begin_src bash
-  if [ ! -d $TECTOOLS_HOME/ftgl ]; then
+  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  if [ ! -d "${TECTOOLS_HOME}/ftgl" ]; then
       echo "ftgl not found."
       exit 1
   fi
-  if [ !  -f $TECTOOLS_HOME/patches/ftgl_changes.patch ]; then
-      echo "ftgl_changes.patch not found."
+  patch_file="${TECGRAF_REPO_ROOT}/patches/ftgl.svn.diff"
+  if [ ! -f "$patch_file" ]; then
+      echo "patchfile not found."
       exit 1
   fi
-  cd $TECTOOLS_HOME/ftgl
-  pathc -p0 $TECTOOLS_HOME/patches/ftgl_changes.patch
+  cd "${TECTOOLS_HOME}/ftgl"
+  patch -p0 < "$patch_file"
   exit 0
 #+end_src
 
+
 ** clean ftgl
 #+begin_src bash
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   cd  $TECTOOLS_HOME/ftgl && rm -rf obj lib
 #+end_src
 
@@ -226,7 +302,7 @@ im_motif
 
 ** build ftgl
 #+begin_src bash :results list :session tecgraf-session
-  . "$TECGRAF_REPO_ROOT/bin/bashrc_iup"
+  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
   env | egrep  '(LUA|TEC)'
   cd  $TECTOOLS_HOME/ftgl || echo not found ftgl
   debug_tec_uname
@@ -237,23 +313,19 @@ im_motif
 - LUA_BIN=/usr/bin
 
 ** backup ftgl
-#+begin_src bash :results output :session tecgraf-session
+#+begin_src bash 
+  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . /tmp/target.env
   backup_tecgraf_build_result ftgl
 #+end_src
 
-#+RESULTS:
-: ftgl_motif
-: ./lib/Linux612_64
-: ./
-: ./libftgl.a
-: ./libftgl.so
-: ./
-: ./libftgl.a
-: ./libftgl.so
 
 ** install ftgl
 
 #+begin_src bash
+  set -ve
+  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . /tmp/target.env
   if [ ! -d $TECTOOLS_HOME/ftgl ]; then
       echo "ftgl not found."
       exit 1
@@ -268,81 +340,61 @@ im_motif
       echo "libftgl.so not found."
       exit 1
   fi
-  sudo cp $TECTOOLS_HOME/ftgl/lib/Linux612_64/libftgl.a /usr/lib/
-  sudo cp $TECTOOLS_HOME/ftgl/lib/Linux612_64/libftgl.so /usr/lib/
+  sudo -E cp $TECTOOLS_HOME/ftgl/lib/Linux612_64/libftgl.a /usr/lib/
+  sudo -E cp $TECTOOLS_HOME/ftgl/lib/Linux612_64/libftgl.so /usr/lib/
 #+end_src
 
 #+RESULTS:
 
+** patch to cd
+#+begin_src bash
+  set -ve
+  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  if [ ! -d "${TECTOOLS_HOME}/cd" ]; then
+      echo "cd not found."
+      exit 1
+  fi
+  patch_file="${TECGRAF_REPO_ROOT}/patches/cd.svn.diff"
+  if [ ! -f "$patch_file" ]; then
+      echo "patchfile not found."
+      exit 1
+  fi
+  cd "${TECTOOLS_HOME}/cd"
+  patch -p0 < "$patch_file"
+  exit 0
+#+end_src
+
+#+RESULTS:
+| patching | file | src/cdpdf.mak |
+| patching | file | tecmake.mak   |
+
 ** clean cd
 #+begin_src bash
+  set -ve
+  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . /tmp/target.env
   cd  $TECTOOLS_HOME/cd && rm -rf obj lib
 #+end_src
 
 #+RESULTS:
 
 ** build cd
-#+begin_src bash :results list :session tecgraf-session
-  . "$TECGRAF_REPO_ROOT/bin/bashrc_iup"
-  env | egrep  '(LUA|TEC)'
+#+begin_src bash :results output
+  set -ve
+  pkg-config --modversion gtk+-3.0 
+  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . /tmp/target.env
+  env | egrep  '(LUA|TEC|EXCLUDE)'
   cd  $TECTOOLS_HOME/cd || (echo not found cd; exit 1)
   make -e -j$(nproc) &> /tmp/cd.log
 #+end_src
 
-#+RESULTS:
-- LUA_BIN=/usr/bin
-- USE_LUA53=Yes
-- USE_LUA_VERSION=5.3
-- LUA_INC=/usr/include/lua5.3
-- TECTOOLS_HOME=/home/kenjiro/Nextcloud/tecgraf/repos
-- LUA_SUFFIX=
-
 ** backup cd
-#+begin_src bash :results output :session tecgraf-session
-  backup_tecgraf_build_result.sh cd
+#+begin_src bash :results output
+  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . /tmp/target.env
+  backup_tecgraf_build_result cd
 #+end_src
-
-#+RESULTS:
-#+begin_example
-cd_motif
-./lib/Linux612_64
-./
-./libcdx11.so
-./libcdim.so
-./libcdcontextplus.a
-./libcdim.a
-./libcdgl.so
-./libcdx11.a
-./libcdgl.a
-./Lua53/
-./Lua53/libcdluaim53.a
-./Lua53/libcdluaim53.so
-./Lua53/libcdluacontextplus53.a
-./Lua53/libcdlua53.so
-./Lua53/libcdluagl53.so
-./Lua53/libcdluagl53.a
-./Lua53/libcdluacontextplus53.so
-./Lua53/libcdlua53.a
-./libcdcontextplus.so
-./
-./libcdx11.so
-./libcdim.so
-./libcdcontextplus.a
-./libcdim.a
-./libcdgl.so
-./libcdx11.a
-./libcdgl.a
-./Lua53/
-./Lua53/libcdluaim53.a
-./Lua53/libcdluaim53.so
-./Lua53/libcdluacontextplus53.a
-./Lua53/libcdlua53.so
-./Lua53/libcdluagl53.so
-./Lua53/libcdluagl53.a
-./Lua53/libcdluacontextplus53.so
-./Lua53/libcdlua53.a
-./libcdcontextplus.so
-#+end_example
 
 * IUP
 - @see https://www.tecgraf.puc-rio.br/iup/en/guide.html
@@ -350,36 +402,61 @@ cd_motif
 ** svn install
 - @see https://www.tecgraf.puc-rio.br/iup/en/svn.html
 #+begin_src bash
-  if [ -d $TECTOOLS_HOME/iup ]; then
+  if [ -d "${TECTOOLS_HOME}/iup" ]; then
       echo "iup already checkuout."
   else
-      cd $TECTOOLS_HOME
+      cd "$TECTOOLS_HOME"
       svn checkout -r5971 svn://svn.code.sf.net/p/iup/iup/trunk/iup iup
   fi
   exit 0
 #+end_src
 
 #+RESULTS:
+: iup already checkuout.
 
-** overwrite iup-go
-
+** patch to iup
 #+begin_src bash
-  SRC=/home/kenjiro/Documents/github/gen2brain/iup-go/iup/external/include
-  DST=/home/kenjiro/Nextcloud/tecgraf/repos/iup/include
-  if [ ! -d "$SRC" ]; then
-      echo "not found $SRC"
+  set -ve
+  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  if [ ! -d "${TECTOOLS_HOME}/iup" ]; then
+      echo "iup not found."
       exit 1
   fi
-  if [ ! -d "$DST" ]; then
-      echo "not found $SRC"
+  patch_file="${TECGRAF_REPO_ROOT}/patches/iup.svn.diff"
+  if [ ! -f "$patch_file" ]; then
+      echo "patchfile not found."
       exit 1
   fi
-  rsync -av -delete $SRC/ $DST/
+  cd "${TECTOOLS_HOME}/iup"
+  patch -p0 < "$patch_file"
+  exit 0
 #+end_src
 
+** install iup-go
+- https://github.com/gen2brain/iup-go.git
 #+begin_src bash
-  SRC=/home/kenjiro/Documents/github/gen2brain/iup-go/iup/external/src
-  DST=/home/kenjiro/Nextcloud/tecgraf/repos/iup/src
+  set -ev
+  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . /tmp/target.env
+  if [ -d "${LOCAL_IUP_GO_REPO}" ]; then
+      echo "iup-go already checkuout."
+  else
+      cd "${TECTOOLS_HOME}"
+      git clone "${REMOTE_IUP_GO_REPO}"
+  fi
+#+end_src
+
+#+RESULTS:
+: iup-go already checkuout.
+
+
+** overwrite iup-go
+#+begin_src bash
+  set -ev
+  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . /tmp/target.env
+  SRC="${TECTOOLS_HOME}/iup-go/iup/external/include"
+  DST="${TECTOOLS_HOME}/iup/include"
   if [ ! -d "$SRC" ]; then
       echo "not found $SRC"
       exit 1
@@ -388,7 +465,25 @@ cd_motif
       echo "not found $SRC"
       exit 1
   fi
-  rsync -av -delete $SRC/ $DST/
+  rsync -av -ignore-existing  $SRC/ $DST/
+#+end_src
+
+
+#+begin_src bash
+  set -ev
+  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . /tmp/target.env
+  SRC="${TECTOOLS_HOME}/iup-go/iup/external/src"
+  DST="${TECTOOLS_HOME}/iup/src"
+  if [ ! -d "$SRC" ]; then
+      echo "not found $SRC"
+      exit 1
+  fi
+  if [ ! -d "$DST" ]; then
+      echo "not found $SRC"
+      exit 1
+  fi
+  rsync -av -ignore-existing $SRC/ $DST/
 #+end_src
 
 
@@ -399,36 +494,42 @@ cd_motif
 #+end_src
 
 ** install libjasper
-#+begin_src bash 
- sudo xbps-install jasper jasper-devel libjasper
- sudo xbps-install lua lua-devel
+#+begin_src bash
+  # void linux
+  sudo xbps-install jasper jasper-devel libjasper
+  sudo xbps-install lua lua-devel
 #+end_src
 
 ** clean iup
 #+begin_src bash
+  set -ev
+  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . /tmp/target.env
   cd  $TECTOOLS_HOME/iup && rm -rf obj lib
 #+end_src
 
 #+RESULTS:
 
 ** build iup
-#+begin_src bash :results list :session tecgraf-session
+#+begin_src bash :results output
+  set -ev
+  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . /tmp/target.env
   cd  $TECTOOLS_HOME/iup || (echo not found iup; exit 1)
   pwd
-  . "$TECGRAF_REPO_ROOT/bin/bashrc_iup"
   env | egrep  '(LUA|TEC)'
   rm -rf /tmp/iup.log
   cd  $TECTOOLS_HOME/iup && make -e -j$(nproc) &> /tmp/iup.log
 #+end_src
 
 #+RESULTS:
-- /home/kenjiro/Nextcloud/tecgraf/repos/iup
-- LUA_BIN=/usr/bin
-- USE_LUA53=Yes
-- USE_LUA_VERSION=5.3
-- LUA_INC=/usr/include/lua5.3
-- TECTOOLS_HOME=/home/kenjiro/Nextcloud/tecgraf/repos
-- LUA_SUFFIX=
+: /home/kenjiro/Documents/github/kenjirofukuda/tecgraf-tools/repos/iup
+: LUA_BIN=/usr/bin
+: USE_LUA54=Yes
+: USE_LUA_VERSION=5.4
+: LUA_INC=/usr/include/lua5.4
+: TECTOOLS_HOME=/home/kenjiro/Documents/github/kenjirofukuda/tecgraf-tools/repos
+: TECGRAF_REPO_ROOT=/home/kenjiro/Documents/github/kenjirofukuda/tecgraf-tools
 
 
 ** backup iup
