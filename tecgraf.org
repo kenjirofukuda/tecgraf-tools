@@ -59,10 +59,10 @@
 
 ** lua downloads
 #+begin_src bash :results output
-  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   . /tmp/target.env
-  SLV=$(echo $USE_LUA_VERSION | tr -d '.')
-  # echo $SLV
+  SLV=$(echo "$USE_LUA_VERSION" | tr -d '.')
+  # echo "$SLV"
   lua_dir="${TECTOOLS_HOME}/lua${SLV}"
   if [ ! -d "$lua_dir" ]; then
 
@@ -77,7 +77,7 @@
   	SRC_URL="https://sourceforge.net/projects/luabinaries/files/5.2.4/Docs%20and%20Sources/lua-5.2.4_Sources.tar.gz/download"
       fi
       basename=$(echo "${SRC_URL}" | cut -f 9 -d '/')
-      echo $basename
+      echo "$basename"
       dest_dir="${TECGRAF_REPO_ROOT}/archives"
       dest_path="${dest_dir}/${basename}"
       if [ ! -f "${dest_path}" ]; then
@@ -96,16 +96,16 @@
   echo deprecated install lua aooficial repository
   echo please install luabinaries version.
   exit 0
-  if [ -z "$TECTOOLS_HOME" ]; then
+  if [ -z "${TECTOOLS_HOME}" ]; then
       echo "Environment variable not set: TECTOOLS_HOME"
       exit 1
   fi
-  if [ -z "$TECGRAF_REPO_ROOT" ]; then
+  if [ -z "${TECGRAF_REPO_ROOT}" ]; then
       echo "Environment variable not set: TECGRAF_REPO_ROOT"
       exit 1
   fi
-  LUA_SLV=$(echo $USE_LUA_VERSION | tr -d '.')
-  # echo $LUA_SLV
+  LUA_SLV=$(echo "$USE_LUA_VERSION" | tr -d '.')
+  # echo "$LUA_SLV"
   lua_dir="${TECTOOLS_HOME}/lua${LUA_SLV}"
   if [ -d "$lua_dir" ]; then
       echo "already extracted $(basename $lua_dir)"
@@ -139,13 +139,13 @@ version 5.4の場合
 | スクリプトが要求 | /usr/bin/lua54  |
 
 #+begin_src bash :results output
-  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   . /tmp/target.env
   if [ -z "${USE_LUA_VERSION}" ]; then
       echo "Environment variable not set: USE_LUA_VERSION"
       exit 1
   fi
-  SLV=$(echo $USE_LUA_VERSION | tr -d '.')
+  SLV=$(echo "$USE_LUA_VERSION" | tr -d '.')
   SRC_CMD="lua${USE_LUA_VERSION}"
   DST_CMD="lua${SLV}"
   SRC_PATH="$(command -v $SRC_CMD)"
@@ -164,11 +164,11 @@ version 5.4の場合
 
 ** lua build
 #+begin_src bash :session tecgraf-session
-  if [ -z "$TECTOOLS_HOME" ]; then
+  if [ -z "${TECTOOLS_HOME}" ]; then
       echo "Environment variable not set: TECTOOLS_HOME"
       exit 1
   fi
-  if [ -z "$TECGRAF_REPO_ROOT" ]; then
+  if [ -z "${TECGRAF_REPO_ROOT}" ]; then
       echo "Environment variable not set: TECGRAF_REPO_ROOT"
       exit 1
   fi
@@ -191,11 +191,11 @@ version 5.4の場合
 ** svn install
 - @see https://www.tecgraf.puc-rio.br/im/en/svn.html
 #+begin_src bash 
-  mkdir -p "$TECTOOLS_HOME"
+  mkdir -p "${TECTOOLS_HOME}"
   if [ -d "${TECTOOLS_HOME}/im" ]; then
       echo "im already checkuout."
   else
-      cd "$TECTOOLS_HOME"
+      cd "${TECTOOLS_HOME}"
       svn checkout -r820 svn://svn.code.sf.net/p/imtoolkit/im/trunk/im im
   fi
   exit 0
@@ -225,24 +225,30 @@ env | grep USE_ | sort
 
 ** clean im
 #+begin_src bash 
-  cd  $TECTOOLS_HOME/im && rm -rf obj lib
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
+  . /tmp/target.env
+  cd  ${TECTOOLS_HOME}/im && rm -rf obj lib
 #+end_src
+
+#+RESULTS:
 
 
 ** build im
 #+begin_src bash :results list
-  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  set -ev
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   . /tmp/target.env
-  cd  $TECTOOLS_HOME/im || echo not found im
+  cd  ${TECTOOLS_HOME}/im || echo not found im
   debug_tec_uname
   env | egrep  '(LUA|TEC)'
   make -e -j$(nproc) &> /tmp/im.log
 #+end_src
 
 
+
 ** backup im
 #+begin_src bash 
-  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   . /tmp/target.env
   backup_tecgraf_build_result im
 #+end_src
@@ -253,17 +259,17 @@ env | grep USE_ | sort
 ** svn install
 - @see https://www.tecgraf.puc-rio.br/cd/en/svn.html
 #+begin_src bash
-  if [ -d $TECTOOLS_HOME/cd ]; then
+  if [ -d ${TECTOOLS_HOME}/cd ]; then
       echo "cd already checkuout."
   else
-      cd $TECTOOLS_HOME
+      cd ${TECTOOLS_HOME}
       svn checkout -r901 svn://svn.code.sf.net/p/canvasdraw/cd/trunk/cd cd 
   fi
 
-  if [ -d $TECTOOLS_HOME/ftgl ]; then
+  if [ -d ${TECTOOLS_HOME}/ftgl ]; then
       echo "ftgl already checkuout."
   else
-      cd $TECTOOLS_HOME
+      cd ${TECTOOLS_HOME}
       svn checkout -r901 svn://svn.code.sf.net/p/canvasdraw/cd/trunk/ftgl ftgl
   fi
   exit 0
@@ -272,7 +278,7 @@ env | grep USE_ | sort
 
 ** patch to ftgl
 #+begin_src bash
-  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   if [ ! -d "${TECTOOLS_HOME}/ftgl" ]; then
       echo "ftgl not found."
       exit 1
@@ -291,23 +297,28 @@ env | grep USE_ | sort
 ** clean ftgl
 #+begin_src bash
   . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
-  cd  $TECTOOLS_HOME/ftgl && rm -rf obj lib
+  cd  ${TECTOOLS_HOME}/ftgl && rm -rf obj lib
 #+end_src
+
+#+RESULTS:
 
 
 ** build ftgl
-#+begin_src bash :results list :session tecgraf-session
-  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+#+begin_src bash :results output
+  set -ev
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   env | egrep  '(LUA|TEC)'
-  cd  $TECTOOLS_HOME/ftgl || echo not found ftgl
+  cd  ${TECTOOLS_HOME}/ftgl || echo not found ftgl
   debug_tec_uname
   make -e -j$(nproc) &> /tmp/ftgl.log
 #+end_src
 
 
+
 ** backup ftgl
 #+begin_src bash 
-  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  set -ev
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   . /tmp/target.env
   backup_tecgraf_build_result ftgl
 #+end_src
@@ -317,31 +328,31 @@ env | grep USE_ | sort
 
 #+begin_src bash
   set -ve
-  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   . /tmp/target.env
-  if [ ! -d $TECTOOLS_HOME/ftgl ]; then
+  if [ ! -d "${TECTOOLS_HOME}/ftgl" ]; then
       echo "ftgl not found."
       exit 1
   fi
-  cd $TECTOOLS_HOME/ftgl
+  cd "${TECTOOLS_HOME}/ftgl"
   make
-  if [ ! -f $TECTOOLS_HOME/ftgl/lib/Linux612_64/libftgl.a ]; then
+  if [ ! -f "${TECTOOLS_HOME}/ftgl/lib/${TEC_UNAME}/libftgl.a" ]; then
       echo "libftgl.a not found."
       exit 1
   fi
-  if [ ! -f $TECTOOLS_HOME/ftgl/lib/Linux612_64/libftgl.so ]; then
+  if [ ! -f "${TECTOOLS_HOME}/ftgl/lib/${TEC_UNAME}/libftgl.so" ]; then
       echo "libftgl.so not found."
       exit 1
   fi
-  sudo -E cp $TECTOOLS_HOME/ftgl/lib/Linux612_64/libftgl.a /usr/lib/
-  sudo -E cp $TECTOOLS_HOME/ftgl/lib/Linux612_64/libftgl.so /usr/lib/
+  sudo -E cp "${TECTOOLS_HOME}/ftgl/lib/${TEC_UNAME}/libftgl.a" /usr/lib/
+  sudo -E cp "${TECTOOLS_HOME}/ftgl/lib/${TEC_UNAME}/libftgl.so" /usr/lib/
 #+end_src
 
 
 ** patch to cd
 #+begin_src bash
   set -ve
-  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   if [ ! -d "${TECTOOLS_HOME}/cd" ]; then
       echo "cd not found."
       exit 1
@@ -359,28 +370,30 @@ env | grep USE_ | sort
 
 ** clean cd
 #+begin_src bash
-  set -ve
-  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  set -ev
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   . /tmp/target.env
-  cd  $TECTOOLS_HOME/cd && rm -rf obj lib
+  cd  ${TECTOOLS_HOME}/cd && rm -rf obj lib
 #+end_src
+
+#+RESULTS:
 
 
 ** build cd
 #+begin_src bash :results output
-  set -ve
+  set -ev
   pkg-config --modversion gtk+-3.0 
-  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   . /tmp/target.env
   env | egrep  '(LUA|TEC|EXCLUDE)'
-  cd  $TECTOOLS_HOME/cd || (echo not found cd; exit 1)
+  cd  ${TECTOOLS_HOME}/cd || (echo not found cd; exit 1)
   make -e -j$(nproc) &> /tmp/cd.log
 #+end_src
 
 
 ** backup cd
 #+begin_src bash :results output
-  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   . /tmp/target.env
   backup_tecgraf_build_result cd
 #+end_src
@@ -394,7 +407,7 @@ env | grep USE_ | sort
   if [ -d "${TECTOOLS_HOME}/iup" ]; then
       echo "iup already checkuout."
   else
-      cd "$TECTOOLS_HOME"
+      cd "${TECTOOLS_HOME}"
       svn checkout -r5971 svn://svn.code.sf.net/p/iup/iup/trunk/iup iup
   fi
   exit 0
@@ -404,7 +417,7 @@ env | grep USE_ | sort
 ** patch to iup
 #+begin_src bash
   set -ve
-  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   if [ ! -d "${TECTOOLS_HOME}/iup" ]; then
       echo "iup not found."
       exit 1
@@ -423,7 +436,7 @@ env | grep USE_ | sort
 - https://github.com/gen2brain/iup-go.git
 #+begin_src bash
   set -ev
-  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   . /tmp/target.env
   if [ -d "${LOCAL_IUP_GO_REPO}" ]; then
       echo "iup-go already checkuout."
@@ -437,7 +450,7 @@ env | grep USE_ | sort
 ** overwrite iup-go
 #+begin_src bash
   set -ev
-  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   . /tmp/target.env
   SRC="${TECTOOLS_HOME}/iup-go/iup/external/include"
   DST="${TECTOOLS_HOME}/iup/include"
@@ -456,7 +469,7 @@ env | grep USE_ | sort
 
 #+begin_src bash
   set -ev
-  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   . /tmp/target.env
   SRC="${TECTOOLS_HOME}/iup-go/iup/external/src"
   DST="${TECTOOLS_HOME}/iup/src"
@@ -488,29 +501,29 @@ env | grep USE_ | sort
 ** clean iup
 #+begin_src bash
   set -ev
-  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   . /tmp/target.env
-  cd  $TECTOOLS_HOME/iup && rm -rf obj lib
+  cd  ${TECTOOLS_HOME}/iup && rm -rf obj lib
 #+end_src
 
 
 ** build iup
 #+begin_src bash :results output
   set -ev
-  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   . /tmp/target.env
-  cd  $TECTOOLS_HOME/iup || (echo not found iup; exit 1)
+  cd  ${TECTOOLS_HOME}/iup || (echo not found iup; exit 1)
   pwd
   env | egrep  '(LUA|TEC)'
   rm -rf /tmp/iup.log
-  cd  $TECTOOLS_HOME/iup && make -e -j$(nproc) &> /tmp/iup.log
+  cd  ${TECTOOLS_HOME}/iup && make -e -j$(nproc) &> /tmp/iup.log
 #+end_src
 
 
 ** backup iup
 #+begin_src bash :results output
   set -ev
-  . "$TECGRAF_REPO_ROOT/bin/bashrc_tecgraf"
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   . /tmp/target.env
   backup_tecgraf_build_result iup
 #+end_src

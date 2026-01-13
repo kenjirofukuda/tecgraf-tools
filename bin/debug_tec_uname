@@ -4,8 +4,8 @@
 echo PWD: $(pwd)
 
 if [ ! -f ./tec_uname ]; then
-    echo "ERROR: tec_uname not found in current directory."
-    exit 1
+    echo "WARNING: tec_uname not found in current directory."
+    exit 0
 fi
 
 echo start
