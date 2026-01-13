@@ -26,8 +26,7 @@ SudoInstall() {
   done
 }
 
-. "$HOME/Nextcloud/Private/Keys/bashrc_iup"
-. "$HOME/Nextcloud/Private/Keys/bashrc_iup_cbuild"
+. $(dirname ${BASH_SOURCE[0]})/bashrc_tecgraf
 
 if ! command -v lua >/dev/null 2>&1 ; then
   echo "ERROR: lua not installed"
