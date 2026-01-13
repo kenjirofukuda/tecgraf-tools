@@ -1,3 +1,20 @@
+Index: src/Makefile
+===================================================================
+--- src/Makefile	(revision 901)
++++ src/Makefile	(working copy)
+@@ -4,8 +4,10 @@
+   TECMAKE_CMD = $(MAKE) --no-print-directory -f ../tecmake.mak
+ endif
+ 
+-.PHONY: do_all cd cdpdf cdgl cdim cdcontextplus cdlua5 cdluapdf5 cdluagl5 cdluacontextplus5 cdluaim5
+-do_all:        cd cdpdf cdgl cdim cdcontextplus cdlua5 cdluapdf5 cdluagl5 cdluacontextplus5 cdluaim5
++TARGETS := cd cdpdf cdgl cdim cdcontextplus cdlua5 cdluapdf5 cdluagl5 cdluacontextplus5 cdluaim5
++TARGETS := $(filter-out $(EXCLUDE_TARGETS), $(TARGETS))
++.PHONY: do_all $(TARGETS)
++do_all: $(TARGETS)
+ 
+ cd:
+ 	@$(TECMAKE_CMD)
 Index: src/cdpdf.mak
 ===================================================================
 --- src/cdpdf.mak	(revision 901)
@@ -7,7 +24,7 @@ Index: src/cdpdf.mak
  INCLUDES = . sim $(PDFLIB)/include
  DEPENDDIR = dep
 -LINK_PDFLIB = Yes
-+LINK_PDFLIB = No
++LINK_PDFLIB =
  
  USE_CD = YES
  CD = ..
