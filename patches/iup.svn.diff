@@ -56851,16 +56851,19 @@ Index: src/config.mak
  
  ifdef USE_HAIKU
    # Since Haiku has no GTK and no Motif, we can only use the native implementation
-@@ -100,7 +101,7 @@
+@@ -100,7 +101,10 @@
           gtk/iupgtk_canvas.c gtk/iupgtk_image.c gtk/iupgtk_dialog.c \
           gtk/iupgtk_common.c gtk/iupgtk_str.c gtk/iupgtk_menu.c \
           gtk/iupgtk_calendar.c iup_datepick.c
 -           
++  # from iup-go enhance essence
 +  SRC += gtk/iupgtk_popover.c gtk/iupgtk_table.c gtk/iupgtk_tray_sni.c gtk/iupgtk_tray_xembed.c
++  SRC += mot/iupunix_notify.c
++
    ifdef USE_GTK3
      SRC += gtk/iupgtk_draw_cairo.c
    else
-@@ -110,7 +111,7 @@
+@@ -110,7 +114,7 @@
        SRC += gtk/iupgtk_draw_gdk.c
      endif
    endif
@@ -56869,7 +56872,7 @@ Index: src/config.mak
    ifneq ($(findstring Win, $(TEC_SYSNAME)), )
      DEFINES += _WIN32_WINNT=$(WIN32VER) _WIN32_IE=0x600 WINVER=$(WIN32VER) NOTREEVIEW
      SRC += win/iupwindows_main.c win/iupwindows_help.c win/iupwindows_info.c
-@@ -128,7 +129,7 @@
+@@ -128,7 +132,7 @@
          USE_X11 = Yes
        endif
        SRC += gtk/iupgtk_help.c mot/iupunix_info.c
@@ -56878,7 +56881,7 @@ Index: src/config.mak
        ifdef USE_GTK3
          SRC += gtk/iupgtk_info.c
        else
-@@ -141,7 +142,7 @@
+@@ -141,7 +145,7 @@
        endif
      endif
    endif
@@ -56887,7 +56890,7 @@ Index: src/config.mak
    ifdef USE_HILDON
      DEFINES += HILDON
      STDINCS += /usr/include/hildon-1
-@@ -158,9 +159,23 @@
+@@ -158,9 +162,22 @@
           mot/iupmot_text.c mot/iupmot_val.c mot/iupmot_tabs.c mot/iupmot_menu.c \
           mot/iupmot_list.c mot/iupmot_tree.c mot/iupmot_dragdrop.c mot/iupmot_str.c \
           mot/iupmot_calendar.c iup_datepick.c
@@ -56909,11 +56912,10 @@ Index: src/config.mak
    USE_X11 = Yes
 +  # add from iup-go  
 +  STDINCS += /usr/include/dbus-1.0 /usr/lib/dbus-1.0/include
-+  LIBS += dbus-1
  
    INCLUDES += mot
  else
-@@ -174,7 +189,7 @@
+@@ -174,7 +191,7 @@
           win/iupwin_progressbar.c win/iupwin_text.c win/iupwin_val.c win/iupwin_touch.c \
           win/iupwin_tabs.c win/iupwin_menu.c win/iupwin_list.c win/iupwin_tree.c \
           win/iupwin_calendar.c win/iupwin_datepick.c
@@ -56922,6 +56924,13 @@ Index: src/config.mak
    ifdef USE_NEW_DRAW
      INCLUDES += win/wdl
      DEFINES += COBJMACROS _UNICODE USE_NEW_DRAW
+@@ -234,3 +251,6 @@
+     BUILD_DYLIB=Yes
+   endif
+ endif
++
++# add from iup-go
++LIBS += dbus-1
 Index: src/gtk/iupgtk_button.c
 ===================================================================
 --- src/gtk/iupgtk_button.c	(revision 5971)
@@ -79214,6 +79223,45 @@ Index: srccd/iup_draw_cd.c
    cdinittable,
    NULL,
    NULL,
+Index: srcglcontrols/config.mak
+===================================================================
+--- srcglcontrols/config.mak	(revision 5971)
++++ srcglcontrols/config.mak	(working copy)
+@@ -43,3 +43,6 @@
+     BUILD_DYLIB=Yes
+   endif
+ endif
++
++# add from iup-go
++LIBS += dbus-1
+Index: srcim/config.mak
+===================================================================
+--- srcim/config.mak	(revision 5971)
++++ srcim/config.mak	(working copy)
+@@ -12,6 +12,9 @@
+ LDIR = ../lib/$(TEC_UNAME)  
+ LIBS = iup
+ 
++# add from iup-go
++LIBS += dbus-1
++
+ SRC = iup_im.c
+ 
+ ifneq ($(findstring MacOS, $(TEC_UNAME)), )
+Index: srcimglib/config.mak
+===================================================================
+--- srcimglib/config.mak	(revision 5971)
++++ srcimglib/config.mak	(working copy)
+@@ -40,6 +40,9 @@
+ LIBS = iup
+ LDIR = ../lib/$(TEC_UNAME)
+ 
++# add from iup-go
++LIBS += dbus-1
++
+ ifneq ($(findstring MacOS, $(TEC_UNAME)), )
+   ifneq ($(TEC_SYSMINOR), 4)
+     BUILD_DYLIB=Yes
 Index: srcledc/y.tab.c
 ===================================================================
 --- srcledc/y.tab.c	(revision 5971)
@@ -79236,6 +79284,17 @@ Index: srcledc/y.tab.c
  
  yyloop:
      if (yyn = yydefred[yystate]) goto yyreduce;
+Index: srclua5/config.mak
+===================================================================
+--- srclua5/config.mak	(revision 5971)
++++ srclua5/config.mak	(working copy)
+@@ -84,3 +84,6 @@
+ 
+ SRC = iuplua.c iuplua_api.c iuplua_draw.c iuplua_tree_aux.c iuplua_scanf.c \
+       iuplua_getparam.c iuplua_getcolor.c iuplua_config.c $(GC)
++
++# add from iup-go
++LIBS += dbus-1
 Index: srclua5/ctrl/il_tuioclient.c
 ===================================================================
 --- srclua5/ctrl/il_tuioclient.c	(revision 5971)
@@ -79588,6 +79647,49 @@ Index: srclua5/elem/il_thread.c
 +
 +  return 0;
 +}
++
+Index: srclua5/iup_scintilla.mak
+===================================================================
+--- srclua5/iup_scintilla.mak	(revision 5971)
++++ srclua5/iup_scintilla.mak	(working copy)
+@@ -16,6 +16,7 @@
+ USE_IUPLUA = Yes
+ 
+ INCLUDES = ../srclua5
++INCLUDES += ../src
+ DEF_FILE = ctrl/iuplua_scintilla.def
+ LIBS = iup_scintilla
+ 
+@@ -73,6 +74,7 @@
+ 	$(LUABIN) generator.lua $<
+ 
+ SRC := $(GC)
++SRC += ../src/mot/iupunix_notify.c
+ 
+ ifneq ($(findstring MacOS, $(TEC_UNAME)), )
+   USE_IUPLUA:=
+Index: srclua5/iupim.mak
+===================================================================
+--- srclua5/iupim.mak	(revision 5971)
++++ srclua5/iupim.mak	(working copy)
+@@ -60,3 +60,6 @@
+   USE_IMLUA:=
+   USE_IM = Yes
+ endif
++
++# add from iup-go
++LIBS += dbus-1
+Index: srclua5/iupimglib.mak
+===================================================================
+--- srclua5/iupimglib.mak	(revision 5971)
++++ srclua5/iupimglib.mak	(working copy)
+@@ -56,3 +56,7 @@
+ ifneq ($(findstring MacOS, $(TEC_UNAME)), )
+   USE_IUPLUA:=
+ endif
++
++# add from iup-go
++LIBS += dbus-1
 +
 Index: srclua5/iuplua_api.c
 ===================================================================
@@ -80135,16 +80237,39 @@ Index: srclua5/lh/tuioclient.lh
 +
 + iuplua_dobuffer(L,(const char*)B1,sizeof(B1),"=""ctrl/tuioclient.lua");
 +}
+Index: srcmglplot/config.mak
+===================================================================
+--- srcmglplot/config.mak	(revision 5971)
++++ srcmglplot/config.mak	(working copy)
+@@ -32,6 +32,8 @@
+ SRCMGLPLOT := $(addprefix src/, $(SRCMGLPLOT))
+ 
+ SRC = iup_mglplot.cpp $(SRCMGLPLOT)
++# add from iup-go
++LIBS += dbus-1
+ 
+ ifneq ($(findstring MacOS, $(TEC_UNAME)), )
+   INCLUDES += $(X11_INC)
+Index: srcscintilla/config.mak
+===================================================================
+--- srcscintilla/config.mak	(revision 5971)
++++ srcscintilla/config.mak	(working copy)
+@@ -269,3 +269,6 @@
+     BUILD_DYLIB=Yes
+   endif
+ endif
++
++# add from iup-go
++LIBS += dbus-1
 Index: srcview/config.mak
 ===================================================================
 --- srcview/config.mak	(revision 5971)
 +++ srcview/config.mak	(working copy)
-@@ -67,3 +67,6 @@
+@@ -67,3 +67,5 @@
  endif
  
  INCLUDES = ../src
 +
-+STDINCS += /usr/include/dbus-1.0 /usr/lib/dbus-1.0/include
 +LIBS += dbus-1
 Index: srcview/iup_view.c
 ===================================================================
@@ -80159,6 +80284,18 @@ Index: srcview/iup_view.c
    if (ret == -1)
      return NULL;
    else
+Index: srcvled/config.mak
+===================================================================
+--- srcvled/config.mak	(revision 5971)
++++ srcvled/config.mak	(working copy)
+@@ -130,3 +130,7 @@
+ endif
+ 
+ INCLUDES = ../src
++
++# add from iup-go
++LIBS += dbus-1
++
 Index: srcvled/vled_image_editor.c
 ===================================================================
 --- srcvled/vled_image_editor.c	(revision 5971)
