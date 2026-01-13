@@ -1,6 +1,7 @@
 #+title: tecgraf.org
 #+1author: kenjirofukuda@gmail.com
 #+options: toc:nil num:nil ^:nil ^:{}
+#+STARTUP: content
 #+HTML_HEAD_EXTRA: <style> .figure p {text-align: left;}</style>
 #+HTML_HEAD_EXTRA: <script src="https://cdn.jsdelivr.net/npm/mermaid@11.12.0/dist/mermaid.min.js"></script>
 
@@ -19,25 +20,47 @@
 | iup  | r5971 |
 
 
+* Setup environment variable
+#+begin_src bash :results output
+  # set -evu
+  err_cnt=0
+  [ -z "${TECGRAF_REPO_ROOT:=}" ]  && echo "ERROR: Environment variable not set: TECGRAF_REPO_ROOT" && ((err_cnt++))
+  [ -z "${TECTOOLS_HOME:=}" ]      && echo "ERROR: Environment variable not set: TECTOOLS_HOME"     && ((err_cnt++))
+  echo err_cnt=$err_cnt
+  [[ "$err_cnt" -gt 0 ]] && exit 1
+  echo "TECGRAF_REPO_ROOT=${TECGRAF_REPO_ROOT}"
+  echo "    TECTOOLS_HOME=${TECTOOLS_HOME}"
+  exit 0
+#+end_src
+
+#+RESULTS:
+: err_cnt=0
+: TECGRAF_REPO_ROOT=/home/kenjiro/Documents/github/kenjirofukuda/tecgraf-tools
+:     TECTOOLS_HOME=/home/kenjiro/Documents/github/kenjirofukuda/tecgraf-tools/repos
+
+
 * TARGET
 ** TARGET = GTK
 #+begin_src bash :results output 
   cat <<EOM > /tmp/target.env
+  export PKG_CONFIG_PATH=
   export REMOTE_IUP_GO_REPO="https://github.com/gen2brain/iup-go.git"
   export LOCAL_IUP_GO_REPO="${TECTOOLS_HOME}/iup-go"
-  
+
   export USE_GTK=Yes
   export USE_GTK3=Yes
   export USE_MOTIF=
   export USE_X11=
   export EXCLUDE_TARGETS="cdpdf cdluapdf5"
   EOM
-  cat /tmp/target.env
 #+end_src
+
+#+RESULTS:
 
 ** TARGET = MOTIF
 #+begin_src bash 
   cat <<EOM > /tmp/target.env
+  export PKG_CONFIG_PATH=
   export REMOTE_IUP_GO_REPO="https://github.com/gen2brain/iup-go.git"
   export LOCAL_IUP_GO_REPO="${TECTOOLS_HOME}/iup-go"
   
@@ -47,7 +70,6 @@
   export USE_X11=Yes
   export EXCLUDE_TARGETS="cdpdf cdluapdf5 iupweb iup_scintilla iupvled" 
   EOM
-  cat /tmp/target.env
 #+end_src
 
 
@@ -56,33 +78,34 @@
 ここで必要なのはオブジェクトファイル群である。
 
 - https://sourceforge.net/projects/luabinaries/files/5.4.2/Docs%20and%20Sources/lua-5.4.2_Sources.tar.gz/download
-
+  
 ** lua downloads
 #+begin_src bash :results output
   . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   . /tmp/target.env
   SLV=$(echo "$USE_LUA_VERSION" | tr -d '.')
   # echo "$SLV"
+  mkdir -p "${TECTOOLS_HOME}"
   lua_dir="${TECTOOLS_HOME}/lua${SLV}"
   if [ ! -d "$lua_dir" ]; then
 
       SRC_URL="https://sourceforge.net/projects/luabinaries/files/5.1.5/Docs%20and%20Sources/lua5_1_5_Sources.tar.gz/download"
       if [ "${USE_LUA_VERSION}" == "5.4" ]; then
-  	SRC_URL="https://sourceforge.net/projects/luabinaries/files/5.4.2/Docs%20and%20Sources/lua-5.4.2_Sources.tar.gz/download"
+	SRC_URL="https://sourceforge.net/projects/luabinaries/files/5.4.2/Docs%20and%20Sources/lua-5.4.2_Sources.tar.gz/download"
       fi
       if [ "${USE_LUA_VERSION}" == "5.3" ]; then
-  	SRC_URL="https://sourceforge.net/projects/luabinaries/files/5.3.6/Docs%20and%20Sources/lua-5.3.6_Sources.tar.gz/download"
+	SRC_URL="https://sourceforge.net/projects/luabinaries/files/5.3.6/Docs%20and%20Sources/lua-5.3.6_Sources.tar.gz/download"
       fi
       if [ "${USE_LUA_VERSION}" == "5.2" ]; then
-  	SRC_URL="https://sourceforge.net/projects/luabinaries/files/5.2.4/Docs%20and%20Sources/lua-5.2.4_Sources.tar.gz/download"
+	SRC_URL="https://sourceforge.net/projects/luabinaries/files/5.2.4/Docs%20and%20Sources/lua-5.2.4_Sources.tar.gz/download"
       fi
       basename=$(echo "${SRC_URL}" | cut -f 9 -d '/')
       echo "$basename"
       dest_dir="${TECGRAF_REPO_ROOT}/archives"
       dest_path="${dest_dir}/${basename}"
       if [ ! -f "${dest_path}" ]; then
-  	mkdir -p "${dest_dir}"
-  	curl -L -o "${dest_path}" "${SRC_URL}"
+	mkdir -p "${dest_dir}"
+	curl -L -o "${dest_path}" "${SRC_URL}"
       fi
       tar -xzf "${dest_path}" -C "${TECTOOLS_HOME}"
   fi
@@ -91,52 +114,15 @@
 #+end_src
 
 
-** lua install (deprecated)
-#+begin_src bash :results output
-  echo deprecated install lua aooficial repository
-  echo please install luabinaries version.
-  exit 0
-  if [ -z "${TECTOOLS_HOME}" ]; then
-      echo "Environment variable not set: TECTOOLS_HOME"
-      exit 1
-  fi
-  if [ -z "${TECGRAF_REPO_ROOT}" ]; then
-      echo "Environment variable not set: TECGRAF_REPO_ROOT"
-      exit 1
-  fi
-  LUA_SLV=$(echo "$USE_LUA_VERSION" | tr -d '.')
-  # echo "$LUA_SLV"
-  lua_dir="${TECTOOLS_HOME}/lua${LUA_SLV}"
-  if [ -d "$lua_dir" ]; then
-      echo "already extracted $(basename $lua_dir)"
-      exit 0
-  fi
-  long_ver=$(lua -v | cut -f2 -d' ')
-  echo TODO extract $long_ver
-  basename="lua-${long_ver}.tar.gz"
-  url="https://www.lua.org/ftp/${basename}"
-  echo start download $url
-  archive_download_dir="${TECGRAF_REPO_ROOT}/archives"
-  archive="$archive_download_dir/${basename}"
-  mkdir -p "$archive_download_dir"
-  cd "$archive_download_dir"
-  if [ -f "$archive" ]; then
-      echo "already downloaded $basename"
-  else
-      curl -O "$url"
-      ls -la 
-  fi
-  mkdir -p "${lua_dir}"
-  tar -xzf "${archive}" --strip-components=1 -C "${lua_dir}/"
-  exit 0
-#+end_src
-
 ** シンボリックリンクによる不具合回避
 サフィックス命名規則にブレが有り、実態と一致していないところがあるのでシンボリックリンクでカバーする。
 version 5.4の場合
 
 | 実在             | /usr/bin/lua5.4 |
 | スクリプトが要求 | /usr/bin/lua54  |
+
+babel におけるsudoの不具合回避がまだ十分ではありません。
+実行結果を端末にペーストして実行してください。
 
 #+begin_src bash :results output
   . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
@@ -161,30 +147,6 @@ version 5.4の場合
   echo sudo ln -s "${SRC_PATH}" "${DST_PATH}"
 #+end_src
 
-
-** lua build
-#+begin_src bash :session tecgraf-session
-  if [ -z "${TECTOOLS_HOME}" ]; then
-      echo "Environment variable not set: TECTOOLS_HOME"
-      exit 1
-  fi
-  if [ -z "${TECGRAF_REPO_ROOT}" ]; then
-      echo "Environment variable not set: TECGRAF_REPO_ROOT"
-      exit 1
-  fi
-  LUA_SLV=$(echo $USE_LUA_VERSION | tr -d '.')
-  # echo $LUA_SLV
-  lua_dir="${TECTOOLS_HOME}/lua${LUA_SLV}"
-  if [ ! -d "$lua_dir" ]; then
-      echo "ERROR: directory not found $lua_dir"
-      exit 1
-  fi
-  echo build
-  cd "$lua_dir"
-  make
-#+end_src
-
-
 * IM
 - @see https://www.tecgraf.puc-rio.br/im/en/guide.html
 
@@ -200,6 +162,8 @@ version 5.4の場合
   fi
   exit 0
 #+end_src
+
+#+RESULTS:
 
 
 #+begin_src bash 
@@ -228,13 +192,15 @@ env | grep USE_ | sort
   set -ev
   . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   . /tmp/target.env
+  cd  ${TECTOOLS_HOME}/im/ && find . -type d -name "dep" -exec rm -rf \{\} \;
   cd  ${TECTOOLS_HOME}/im/src/ && make -f ../tecmake.mak clean clean-extra
   cd  ${TECTOOLS_HOME}/im/ && rm -rf obj lib
-  cd  ${TECTOOLS_HOME}/im/ && find . -type d -name "dep" -exec rm -rf \{\} \;
       #+end_src
 
 
 ** build im
+- liblua-5.{x}-dev
+- libfftw3-dev
 #+begin_src bash :results list
   set -ev
   . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
