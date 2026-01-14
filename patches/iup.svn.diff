@@ -2,7 +2,7 @@ Index: srccd/config.mak
 ===================================================================
 --- srccd/config.mak	(revision 5971)
 +++ srccd/config.mak	(working copy)
-@@ -5,6 +5,7 @@
+@@ -5,11 +5,14 @@
  DEFINES = CD_NO_OLD_INTERFACE
  SRC = iup_cd.c iup_cdutil.c iup_draw_cd.c
  DEF_FILE = iupcd.def
@@ -10,6 +10,13 @@ Index: srccd/config.mak
  
  USE_CD=YES
  # Can not use USE_IUP because Tecmake will include "iupcd" in linker
+ 
+ INCLUDES = ../include ../src
++INCLUDES += ../../cd/include
++
+ LIBS = iup
+ LDIR = ../lib/$(TEC_UNAME)
+ 
 Index: srccd/iup_cd.c
 ===================================================================
 --- srccd/iup_cd.c	(revision 5971)
@@ -70,6 +77,20 @@ Index: srccd/iup_draw_cd.c
    cdinittable,
    NULL,
    NULL,
+Index: srccontrols/config.mak
+===================================================================
+--- srccontrols/config.mak	(revision 5971)
++++ srccontrols/config.mak	(working copy)
+@@ -3,7 +3,9 @@
+ OPT = YES
+ 
+ INCLUDES = ../include ../src . ../srccd
++INCLUDES += ../../cd/include
+ 
++
+ SRCMATRIXEX = iup_matrixex.c iupmatex_clipboard.c iupmatex_busy.c \
+               iupmatex_export.c iupmatex_visible.c iupmatex_copy.c \
+               iupmatex_units.c iupmatex_find.c iupmatex_undo.c \
 Index: srcglcontrols/config.mak
 ===================================================================
 --- srcglcontrols/config.mak	(revision 5971)
@@ -85,7 +106,12 @@ Index: srcim/config.mak
 ===================================================================
 --- srcim/config.mak	(revision 5971)
 +++ srcim/config.mak	(working copy)
-@@ -12,6 +12,9 @@
+@@ -9,9 +9,14 @@
+ endif  
+ 
+ INCLUDES = ../include ../src
++INCLUDES += ../../im/include
++
  LDIR = ../lib/$(TEC_UNAME)  
  LIBS = iup
  
@@ -186,6 +212,32 @@ Index: srclua5/ctrl/iuplua_plot.c
    free(px);
    free(py);
    return 0;
+Index: srclua5/iup_mglplot.mak
+===================================================================
+--- srclua5/iup_mglplot.mak	(revision 5971)
++++ srclua5/iup_mglplot.mak	(working copy)
+@@ -16,6 +16,8 @@
+ USE_IUPLUA = Yes
+ 
+ INCLUDES = ../srclua5
++INCLUDES += ../include
++
+ DEF_FILE = ctrl/iuplua_mglplot.def
+ LIBS = iup_mglplot
+ 
+Index: srclua5/iup_plot.mak
+===================================================================
+--- srclua5/iup_plot.mak	(revision 5971)
++++ srclua5/iup_plot.mak	(working copy)
+@@ -17,6 +17,8 @@
+ USE_CDLUA = Yes
+ 
+ INCLUDES =  ../src ../srclua5
++INCLUDES += ../include ../../cd/include
++
+ LIBS = iup_plot
+ DEF_FILE = ctrl/iuplua_plot.def
+ 
 Index: srclua5/iup_scintilla.mak
 ===================================================================
 --- srclua5/iup_scintilla.mak	(revision 5971)
@@ -194,7 +246,7 @@ Index: srclua5/iup_scintilla.mak
  USE_IUPLUA = Yes
  
  INCLUDES = ../srclua5
-+INCLUDES += ../src
++INCLUDES += ../src ../include
  DEF_FILE = ctrl/iuplua_scintilla.def
  LIBS = iup_scintilla
  
@@ -206,11 +258,69 @@ Index: srclua5/iup_scintilla.mak
  
  ifneq ($(findstring MacOS, $(TEC_UNAME)), )
    USE_IUPLUA:=
+Index: srclua5/iupcd.mak
+===================================================================
+--- srclua5/iupcd.mak	(revision 5971)
++++ srclua5/iupcd.mak	(working copy)
+@@ -16,6 +16,7 @@
+ DEPENDDIR = dep
+ 
+ INCLUDES = ../include
++INCLUDES += ../../cd/include
+ LDIR = ../lib/$(TEC_UNAME)
+ DEFINES = CD_NO_OLD_INTERFACE
+ SRC = iuplua_cd.c
+Index: srclua5/iupcontrols.mak
+===================================================================
+--- srclua5/iupcontrols.mak	(revision 5971)
++++ srclua5/iupcontrols.mak	(working copy)
+@@ -17,6 +17,7 @@
+ USE_CDLUA = Yes
+ 
+ INCLUDES = ../src ctrl ../srclua5
++INCLUDES +=  ../include ../../cd/include
+ LIBS = iupcontrols
+ DEF_FILE = ctrl/iupluacontrols.def
+ 
+Index: srclua5/iupgl.mak
+===================================================================
+--- srclua5/iupgl.mak	(revision 5971)
++++ srclua5/iupgl.mak	(working copy)
+@@ -16,6 +16,8 @@
+ USE_IUPLUA = Yes
+ 
+ INCLUDES = ../srclua5
++INCLUDES += ../include
++
+ DEF_FILE = ctrl/iupluagl.def
+ 
+ ifdef USE_LUA_VERSION
+Index: srclua5/iupglcontrols.mak
+===================================================================
+--- srclua5/iupglcontrols.mak	(revision 5971)
++++ srclua5/iupglcontrols.mak	(working copy)
+@@ -16,6 +16,8 @@
+ USE_IUPLUA = Yes
+ 
+ INCLUDES = ../src gl ../srclua5
++INCLUDES += ../include
++
+ LIBS = iupglcontrols iuplua$(LUASFX)
+ DEF_FILE = gl/iupluaglcontrols.def
+ 
 Index: srclua5/iupim.mak
 ===================================================================
 --- srclua5/iupim.mak	(revision 5971)
 +++ srclua5/iupim.mak	(working copy)
-@@ -60,3 +60,6 @@
+@@ -17,6 +17,7 @@
+ SRC = iuplua_im.c
+ DEF_FILE = iupluaim.def
+ INCLUDES = ../src
++INCLUDES += ../include ../../im/include
+ LIBS = iupim
+ 
+ ifdef USE_LUA_VERSION
+@@ -60,3 +61,6 @@
    USE_IMLUA:=
    USE_IM = Yes
  endif
@@ -221,13 +331,14 @@ Index: srclua5/iupimglib.mak
 ===================================================================
 --- srclua5/iupimglib.mak	(revision 5971)
 +++ srclua5/iupimglib.mak	(working copy)
-@@ -56,3 +56,7 @@
+@@ -56,3 +56,8 @@
  ifneq ($(findstring MacOS, $(TEC_UNAME)), )
    USE_IUPLUA:=
  endif
 +
 +# add from iup-go
 +LIBS += dbus-1
++INCLUDES += ../include
 +
 Index: srclua5/iuplua_api.c
 ===================================================================
@@ -255,6 +366,54 @@ Index: srclua5/iuplua_im.c
    iuplua_pushihandle(L, animation);
    return 1;
  }
+Index: srclua5/iupluascripterdlg.mak
+===================================================================
+--- srclua5/iupluascripterdlg.mak	(revision 5971)
++++ srclua5/iupluascripterdlg.mak	(working copy)
+@@ -16,6 +16,8 @@
+ USE_IUPLUA = Yes
+ 
+ INCLUDES = ../src ../srclua5
++INCLUDES += ../include
++
+ DEF_FILE = scripter/iupluascripterdlg.def
+ LIBS = iup_scintilla iupimglib
+ 
+Index: srclua5/iuptuio.mak
+===================================================================
+--- srclua5/iuptuio.mak	(revision 5971)
++++ srclua5/iuptuio.mak	(working copy)
+@@ -17,6 +17,7 @@
+ 
+ DEF_FILE = ctrl/iupluatuio.def
+ INCLUDES = ../src ../srclua5
++INCLUDES += ../include
+ LIBS = iuptuio
+ 
+ ifdef USE_LUA_VERSION
+Index: srclua5/iupweb.mak
+===================================================================
+--- srclua5/iupweb.mak	(revision 5971)
++++ srclua5/iupweb.mak	(working copy)
+@@ -16,6 +16,8 @@
+ USE_IUPLUA = Yes
+ 
+ INCLUDES = ../srclua5
++INCLUDES += ../include
++
+ LIBS = iupweb
+ DEF_FILE = ctrl/iupluaweb.def
+ 
+Index: srcluaconsole/config.mak
+===================================================================
+--- srcluaconsole/config.mak	(revision 5971)
++++ srcluaconsole/config.mak	(working copy)
+@@ -239,3 +239,5 @@
+   OPTFLAGS = -mminimal-toc -ansi -pedantic 
+   LFLAGS = -Xlinker "-bbigtoc"
+ endif
++
++INCLUDES += ../include
 Index: srcmglplot/config.mak
 ===================================================================
 --- srcmglplot/config.mak	(revision 5971)
@@ -268,6 +427,19 @@ Index: srcmglplot/config.mak
  
  ifneq ($(findstring MacOS, $(TEC_UNAME)), )
    INCLUDES += $(X11_INC)
+Index: srcplot/config.mak
+===================================================================
+--- srcplot/config.mak	(revision 5971)
++++ srcplot/config.mak	(working copy)
+@@ -17,6 +17,8 @@
+ DEF_FILE = iup_plot.def
+ 
+ INCLUDES = ../include ../src ../srccd
++INCLUDES += ../../cd/include
++
+ LDIR = ../lib/$(TEC_UNAME)  
+ LIBS = iup iupgl iupcd cdgl 
+ 
 Index: srcscintilla/config.mak
 ===================================================================
 --- srcscintilla/config.mak	(revision 5971)
@@ -287,7 +459,7 @@ Index: srcview/config.mak
  endif
  
  INCLUDES = ../src
-+
++INCLUDES += ../include
 +LIBS += dbus-1
 Index: srcview/iup_view.c
 ===================================================================
@@ -306,10 +478,11 @@ Index: srcvled/config.mak
 ===================================================================
 --- srcvled/config.mak	(revision 5971)
 +++ srcvled/config.mak	(working copy)
-@@ -130,3 +130,7 @@
+@@ -130,3 +130,8 @@
  endif
  
  INCLUDES = ../src
++INCLUDES += ../include ../../cd/include ../../im/include
 +
 +# add from iup-go
 +LIBS += dbus-1
@@ -327,6 +500,19 @@ Index: srcvled/vled_image_editor.c
      if (ret != -1)
      {
        char* name = image_names[ret];
+Index: srcweb/config.mak
+===================================================================
+--- srcweb/config.mak	(revision 5971)
++++ srcweb/config.mak	(working copy)
+@@ -3,6 +3,8 @@
+ OPT = YES
+ 
+ INCLUDES =  ../include ../src
++INCLUDES += ../include
++
+ LDIR = ../lib/$(TEC_UNAME)  
+ LIBS = iup
+ SRC = iup_webbrowser.c
 Index: tecmake.mak
 ===================================================================
 --- tecmake.mak	(revision 5971)

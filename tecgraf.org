@@ -136,10 +136,51 @@
       echo "WARNING: ${pkg} already checkuout."
   else
       cd "${TECTOOLS_HOME}"
-      echo svn checkout -r"${revn}" "${repo}" "${pkg}"
+      svn checkout -r"${revn}" "${repo}" "${pkg}"
   fi
   exit 0
 #+end_src
+
+** download iup-go
+- https://github.com/gen2brain/iup-go.git
+#+begin_src bash :results output :tangle ./bin/download_iup-go :tangle-mode (identity #o755) :shebang #!/usr/bin/env bash
+  set -ev
+  REMOTE_IUP_GO_REPO="https://github.com/gen2brain/iup-go.git"
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
+  . /tmp/target.env
+  if [ -d "${LOCAL_IUP_GO_REPO}" ]; then
+      echo "iup-go already checkuout."
+  else
+      cd "${TECTOOLS_HOME}"
+      git clone "${REMOTE_IUP_GO_REPO}"
+  fi
+#+end_src
+
+** overwrite iup-go
+#+begin_src bash :results output :tangle ./bin/overwrite_iup-go :tangle-mode (identity #o755) :shebang #!/usr/bin/env bash
+  set -ev
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
+  . /tmp/target.env
+
+  OverwriteIupGo() {
+      PART=$1
+      SRC="${TECTOOLS_HOME}/iup-go/iup/external/${PART}"
+      DST="${TECTOOLS_HOME}/iup/${PART}"
+      if [ ! -d "$SRC" ]; then
+	  echo "not found $SRC"
+	  exit 1
+      fi
+      if [ ! -d "$DST" ]; then
+	  echo "not found $DST"
+	  exit 1
+      fi
+      rsync -av $SRC/ $DST/
+  }
+
+  OverwriteIupGo "include"
+  OverwriteIupGo "src"
+#+end_src
+
 
 ** patch_pkg
 #+begin_src bash :results output :tangle ./bin/patch_pkg :tangle-mode (identity #o755) :shebang #!/usr/bin/env bash
@@ -354,6 +395,9 @@ babel におけるsudoの不具合回避がまだ十分ではありません。
   download_svn_pkg im "svn://svn.code.sf.net/p/imtoolkit/im/trunk/im" 820
 #+end_src
 
+#+RESULTS:
+: WARNING: im already checkuout.
+
 
 #+begin_src bash 
 env | grep USE_ | sort
@@ -463,67 +507,22 @@ env | grep USE_ | sort
 
 * IUP
 - @see https://www.tecgraf.puc-rio.br/iup/en/guide.html
-
+- libwebkit2gtk-4.1-dev
 ** download iup
 - @see https://www.tecgraf.puc-rio.br/iup/en/svn.html
 #+begin_src bash :results output
   download_svn_pkg iup "svn://svn.code.sf.net/p/iup/iup/trunk/iup" 5971
 #+end_src
 
-** patch to iup
-#+begin_src bash :results output
-  patch_pkg iup
-  #+end_src
-
-** install iup-go
+** download iup-go
 - https://github.com/gen2brain/iup-go.git
 #+begin_src bash :results output
-  set -ev
-  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
-  . /tmp/target.env
-  if [ -d "${LOCAL_IUP_GO_REPO}" ]; then
-      echo "iup-go already checkuout."
-  else
-      cd "${TECTOOLS_HOME}"
-      git clone "${REMOTE_IUP_GO_REPO}"
-  fi
+  download_iup-go
 #+end_src
 
 ** overwrite iup-go
 #+begin_src bash :results output
-  set -ev
-  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
-  . /tmp/target.env
-  SRC="${TECTOOLS_HOME}/iup-go/iup/external/include"
-  DST="${TECTOOLS_HOME}/iup/include"
-  if [ ! -d "$SRC" ]; then
-      echo "not found $SRC"
-      exit 1
-  fi
-  if [ ! -d "$DST" ]; then
-      echo "not found $DST"
-      exit 1
-  fi
-  rsync -av $SRC/ $DST/
-#+end_src
-
-
-
-#+begin_src bash
-  set -ev
-  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
-  . /tmp/target.env
-  SRC="${TECTOOLS_HOME}/iup-go/iup/external/src"
-  DST="${TECTOOLS_HOME}/iup/src"
-  if [ ! -d "$SRC" ]; then
-      echo "not found $SRC"
-      exit 1
-  fi
-  if [ ! -d "$DST" ]; then
-      echo "not found $DST"
-      exit 1
-  fi
-  rsync -av $SRC/ $DST/
+  overwrite_iup-go
 #+end_src
 
 ** fix: src/libjasper2/base/jas_stream.c
@@ -538,6 +537,11 @@ env | grep USE_ | sort
   sudo xbps-install jasper jasper-devel libjasper
   sudo xbps-install lua lua-devel
 #+end_src
+
+** patch to iup                                                          :yes:
+#+begin_src bash :results output
+  patch_pkg iup
+  #+end_src
 
 ** clean iup
 #+begin_src bash :results output
