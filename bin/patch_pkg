@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+if [ "$#" -eq 0 ]; then
+    echo "usage: $(basename $0): {im|ftgl|cd|iup}"
+    exit 1
+fi
+
+if [ -z "${TECTOOLS_HOME}:=" ]; then
+    echo "Environment variable not set: TECTOOLS_HOME"
+    exit 1
+fi
+if [ -z "${TECGRAF_REPO_ROOT}:=" ]; then
+    echo "Environment variable not set: TECGRAF_REPO_ROOT"
+    exit 1
+fi
+pkg=$1
+. "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
+. /tmp/target.env
+
+if [ ! -d "${TECTOOLS_HOME}/${pkg}" ]; then
+    echo "ERROR: ${pkg} not found."
+    exit 1
+fi
+patch_file="${TECGRAF_REPO_ROOT}/patches/${pkg}.svn.diff"
+if [ ! -f "$patch_file" ]; then
+    echo "ERROR: patchfile not found. $(basename $patch_file)"
+    exit 1
+fi
+cd "${TECTOOLS_HOME}/${pkg}"
+if  ls ./src/*.rej &> /dev/null  ; then
+    echo "WARNING: already patch applyied. and Fail"
+    exit 1
+fi
+if [ -f .patch.done ]; then
+    echo "WARNING: already patch applyied."
+    exit 0
+fi
+patch -p0 < "$patch_file" && touch .patch.done 
+exit 0

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -eu
+. "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
+. /tmp/target.env
+pkg=im
+revn=820
+repo="svn://svn.code.sf.net/p/imtoolkit/im/trunk/im"
+mkdir -p "${TECTOOLS_HOME}"
+if [ -d "${TECTOOLS_HOME}/${pkg}" ]; then
+    echo "WARNING: ${pkg} already checkuout."
+else
+    cd "${TECTOOLS_HOME}"
+    svn checkout -r"${revn}" "${repo}" "${pkg}"
+fi
+exit 0

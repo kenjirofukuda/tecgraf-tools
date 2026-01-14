@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+set -ev
+. "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
+. /tmp/target.env
+
+OverwriteIupGo() {
+    PART=$1
+    SRC="${TECTOOLS_HOME}/iup-go/iup/external/${PART}"
+    DST="${TECTOOLS_HOME}/iup/${PART}"
+    if [ ! -d "$SRC" ]; then
+	echo "not found $SRC"
+	exit 1
+    fi
+    if [ ! -d "$DST" ]; then
+	echo "not found $DST"
+	exit 1
+    fi
+    rsync -av $SRC/ $DST/
+}
+
+OverwriteIupGo "include"
+OverwriteIupGo "src"

@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+set -eu
+if [ "$#" -le 2 ]; then
+    echo "usage: $(basename $0): {im|ftgl|cd|iup} {repository} {revision}"
+    exit 1
+fi
+
+if [ -z "${TECTOOLS_HOME}:=" ]; then
+    echo "Environment variable not set: TECTOOLS_HOME"
+    exit 1
+fi
+if [ -z "${TECGRAF_REPO_ROOT}:=" ]; then
+    echo "Environment variable not set: TECGRAF_REPO_ROOT"
+    exit 1
+fi
+pkg="$1"
+repo="$2"
+revn="$3"
+. "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
+. /tmp/target.env
+
+. "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
+. /tmp/target.env
+mkdir -p "${TECTOOLS_HOME}"
+if [ -d "${TECTOOLS_HOME}/${pkg}" ]; then
+    echo "WARNING: ${pkg} already checkuout."
+else
+    cd "${TECTOOLS_HOME}"
+    svn checkout -r"${revn}" "${repo}" "${pkg}"
+fi
+exit 0

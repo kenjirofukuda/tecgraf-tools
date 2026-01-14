@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -evu
+. "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
+. /tmp/target.env
+SLV=$(echo "$USE_LUA_VERSION" | tr -d '.')
+# echo "$SLV"
+mkdir -p "${TECTOOLS_HOME}"
+lua_dir="${TECTOOLS_HOME}/lua${SLV}"
+if [ ! -d "$lua_dir" ]; then
+
+    SRC_URL="https://sourceforge.net/projects/luabinaries/files/5.1.5/Docs%20and%20Sources/lua5_1_5_Sources.tar.gz/download"
+    if [ "${USE_LUA_VERSION}" == "5.4" ]; then
+      SRC_URL="https://sourceforge.net/projects/luabinaries/files/5.4.2/Docs%20and%20Sources/lua-5.4.2_Sources.tar.gz/download"
+    fi
+    if [ "${USE_LUA_VERSION}" == "5.3" ]; then
+      SRC_URL="https://sourceforge.net/projects/luabinaries/files/5.3.6/Docs%20and%20Sources/lua-5.3.6_Sources.tar.gz/download"
+    fi
+    if [ "${USE_LUA_VERSION}" == "5.2" ]; then
+      SRC_URL="https://sourceforge.net/projects/luabinaries/files/5.2.4/Docs%20and%20Sources/lua-5.2.4_Sources.tar.gz/download"
+    fi
+    basename=$(echo "${SRC_URL}" | cut -f 9 -d '/')
+    echo "$basename"
+    dest_dir="${TECGRAF_REPO_ROOT}/archives"
+    dest_path="${dest_dir}/${basename}"
+    if [ ! -f "${dest_path}" ]; then
+      mkdir -p "${dest_dir}"
+      curl -L -o "${dest_path}" "${SRC_URL}"
+    fi
+    tar -xzf "${dest_path}" -C "${TECTOOLS_HOME}"
+fi
+cd "${lua_dir}/src"
+make -f Makefile.tecmake lualib

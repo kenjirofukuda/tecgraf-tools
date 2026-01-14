@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+if [ "$#" -eq 0 ]; then
+    echo "usage: $(basename $0): {im|ftgl|cd|iup}"
+    exit 1
+fi
+
+if [ -z "$TECTOOLS_HOME" ]; then
+    echo "Environment variable not set: TECTOOLS_HOME"
+    exit 1
+fi
+if [ -z "$TECGRAF_REPO_ROOT" ]; then
+    echo "Environment variable not set: TECGRAF_REPO_ROOT"
+    exit 1
+fi
+
+pkg=$1
+. "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
+. /tmp/target.env
+dir="${TECTOOLS_HOME}/${pkg}"
+if [ ! -d "$dir" ]; then
+    echo "ERROR: directory not found ${dir}"
+    exit 1
+fi
+
+cd "$dir"
+if [ -f ./tec_uname ]; then
+    . ./tec_uname
+    ComputeTecUname
+    ComputeSystemPaths
+    ComputeLuaVersion
+else
+    TEC_UNAME=$(ls lib)
+fi
+# debug_tec_uname.sh
+baselib="./lib/$TEC_UNAME"
+# echo $baselib
+# env | grep USE_ | sort
+basename=""
+so_dir=""
+if [[ ! -z  "$USE_MOTIF"  ]]; then
+    basename="${pkg}_motif"
+    so_dir="${TECGRAF_REPO_ROOT}/_so/motif/${pkg}"
+fi
+if [[ ! -z  "$USE_GTK"  ]]; then
+    basename="${pkg}_gtk"
+    so_dir="${TECGRAF_REPO_ROOT}/_so/gtk/${pkg}"
+fi
+echo $basename
+if [[  -z "$basename" ]]; then
+    echo "ERROR: invalid target"
+    exit 1
+fi
+echo $baselib
+tar -czvf /tmp/$basename.gz  -C $baselib .
+mkdir -p "$so_dir"
+cd "$so_dir"
+tar -zxvf /tmp/$basename.gz
+exit 0

@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+#set -eu
+if [ "$#" -eq 0 ]; then
+    echo "usage: $(basename $0): {im|ftgl|cd|iup}"
+    exit 1
+fi
+
+if [ -z "${TECTOOLS_HOME}:=" ]; then
+    echo "Environment variable not set: TECTOOLS_HOME"
+    exit 1
+fi
+if [ -z "${TECGRAF_REPO_ROOT}:=" ]; then
+    echo "Environment variable not set: TECGRAF_REPO_ROOT"
+    exit 1
+fi
+pkg=$1
+. "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
+. /tmp/target.env
+
+if [ ! -d "${TECTOOLS_HOME}/${pkg}" ]; then
+    echo "ERROR: ${pkg} not found."
+    exit 1
+fi
+cd  ${TECTOOLS_HOME}/${pkg}/ && find . -type d -name "dep" -exec rm -rf \{\} \;
+cd  ${TECTOOLS_HOME}/${pkg}/src/ && make -f ../tecmake.mak clean clean-extra
+cd  ${TECTOOLS_HOME}/${pkg}/ && rm -rf obj lib

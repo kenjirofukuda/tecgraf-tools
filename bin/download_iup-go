@@ -1,0 +1,11 @@
+#!/usr/bin/env bash
+set -ev
+REMOTE_IUP_GO_REPO="https://github.com/gen2brain/iup-go.git"
+. "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
+. /tmp/target.env
+if [ -d "${LOCAL_IUP_GO_REPO}" ]; then
+    echo "iup-go already checkuout."
+else
+    cd "${TECTOOLS_HOME}"
+    git clone "${REMOTE_IUP_GO_REPO}"
+fi
