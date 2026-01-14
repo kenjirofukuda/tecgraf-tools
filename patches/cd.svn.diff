@@ -15,6 +15,76 @@ Index: src/Makefile
  
  cd:
  	@$(TECMAKE_CMD)
+Index: src/cdcontextplus.mak
+===================================================================
+--- src/cdcontextplus.mak	(revision 901)
++++ src/cdcontextplus.mak	(working copy)
+@@ -38,3 +38,4 @@
+ 
+ USE_CD = YES
+ CD = ..
++INCLUDES += ../include
+Index: src/cdgl.mak
+===================================================================
+--- src/cdgl.mak	(revision 901)
++++ src/cdgl.mak	(working copy)
+@@ -27,3 +27,5 @@
+   endif
+   LDIR += $(GTK)/lib
+ endif
++
++INCLUDES += ../include
+Index: src/cdim.mak
+===================================================================
+--- src/cdim.mak	(revision 901)
++++ src/cdim.mak	(working copy)
+@@ -16,3 +16,6 @@
+     BUILD_DYLIB=Yes
+   endif
+ endif
++
++INCLUDES += ../include ../../im/include
++
+Index: src/cdlua5.mak
+===================================================================
+--- src/cdlua5.mak	(revision 901)
++++ src/cdlua5.mak	(working copy)
+@@ -48,3 +48,5 @@
+ LUAMOD_DIR = Yes
+ USE_CD = YES
+ CD = ..
++
++INCLUDES += ../include
+Index: src/cdluacontextplus5.mak
+===================================================================
+--- src/cdluacontextplus5.mak	(revision 901)
++++ src/cdluacontextplus5.mak	(working copy)
+@@ -67,3 +67,5 @@
+   INCLUDES += ../include
+   LDIR = ../lib/$(TEC_UNAME)
+ endif
++
++INCLUDES += ../include
+Index: src/cdluagl5.mak
+===================================================================
+--- src/cdluagl5.mak	(revision 901)
++++ src/cdluagl5.mak	(working copy)
+@@ -57,3 +57,5 @@
+   INCLUDES += ../include
+   LDIR = ../lib/$(TEC_UNAME)
+ endif
++
++INCLUDES += ../include ../../im/include
+Index: src/cdluaim5.mak
+===================================================================
+--- src/cdluaim5.mak	(revision 901)
++++ src/cdluaim5.mak	(working copy)
+@@ -59,3 +59,5 @@
+   INCLUDES += ../include $(IM)/include
+   LDIR = ../lib/$(TEC_UNAME) $(IM)/lib/$(TEC_UNAME)
+ endif
++
++INCLUDES += ../include ../../im/include
 Index: src/cdpdf.mak
 ===================================================================
 --- src/cdpdf.mak	(revision 901)

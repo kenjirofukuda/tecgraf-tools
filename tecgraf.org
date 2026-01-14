@@ -19,6 +19,10 @@
 | ftgl | r901  |
 | iup  | r5971 |
 
+#+begin_src bash :results output :tangle ./bin/hello_world2 :tangle-mode (identity #o755) :shebang #!/usr/bin/env bash
+  echo 'Hello World!'
+#+end_src
+
 
 * Setup environment variable
 #+begin_src bash :results output
@@ -32,11 +36,6 @@
   echo "    TECTOOLS_HOME=${TECTOOLS_HOME}"
   exit 0
 #+end_src
-
-#+RESULTS:
-: err_cnt=0
-: TECGRAF_REPO_ROOT=/home/kenjiro/Documents/github/kenjirofukuda/tecgraf-tools
-:     TECTOOLS_HOME=/home/kenjiro/Documents/github/kenjirofukuda/tecgraf-tools/repos
 
 
 * TARGET
@@ -55,7 +54,6 @@
   EOM
 #+end_src
 
-#+RESULTS:
 
 ** TARGET = MOTIF
 #+begin_src bash 
@@ -73,14 +71,10 @@
 #+end_src
 
 
-* LUA
-基本的に、コマンドの実行自身はディストリビューションの標準パッケージンを使用する。
-ここで必要なのはオブジェクトファイル群である。
-
-- https://sourceforge.net/projects/luabinaries/files/5.4.2/Docs%20and%20Sources/lua-5.4.2_Sources.tar.gz/download
-  
-** lua downloads
-#+begin_src bash :results output
+* Scripts
+** download_tecgraf_lua
+#+begin_src bash :results output :tangle ./bin/download_tecgraf_lua :tangle-mode (identity #o755) :shebang #!/usr/bin/env bash
+  set -evu
   . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   . /tmp/target.env
   SLV=$(echo "$USE_LUA_VERSION" | tr -d '.')
@@ -113,6 +107,210 @@
   make -f Makefile.tecmake lualib
 #+end_src
 
+** donwload_svn_pkg
+#+begin_src bash :results output :tangle ./bin/download_svn_pkg :tangle-mode (identity #o755) :shebang #!/usr/bin/env bash
+  set -eu
+  if [ "$#" -le 2 ]; then
+      echo "usage: $(basename $0): {im|ftgl|cd|iup} {repository} {revision}"
+      exit 1
+  fi
+
+  if [ -z "${TECTOOLS_HOME}:=" ]; then
+      echo "Environment variable not set: TECTOOLS_HOME"
+      exit 1
+  fi
+  if [ -z "${TECGRAF_REPO_ROOT}:=" ]; then
+      echo "Environment variable not set: TECGRAF_REPO_ROOT"
+      exit 1
+  fi
+  pkg="$1"
+  repo="$2"
+  revn="$3"
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
+  . /tmp/target.env
+
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
+  . /tmp/target.env
+  mkdir -p "${TECTOOLS_HOME}"
+  if [ -d "${TECTOOLS_HOME}/${pkg}" ]; then
+      echo "WARNING: ${pkg} already checkuout."
+  else
+      cd "${TECTOOLS_HOME}"
+      echo svn checkout -r"${revn}" "${repo}" "${pkg}"
+  fi
+  exit 0
+#+end_src
+
+** patch_pkg
+#+begin_src bash :results output :tangle ./bin/patch_pkg :tangle-mode (identity #o755) :shebang #!/usr/bin/env bash
+  if [ "$#" -eq 0 ]; then
+      echo "usage: $(basename $0): {im|ftgl|cd|iup}"
+      exit 1
+  fi
+
+  if [ -z "${TECTOOLS_HOME}:=" ]; then
+      echo "Environment variable not set: TECTOOLS_HOME"
+      exit 1
+  fi
+  if [ -z "${TECGRAF_REPO_ROOT}:=" ]; then
+      echo "Environment variable not set: TECGRAF_REPO_ROOT"
+      exit 1
+  fi
+  pkg=$1
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
+  . /tmp/target.env
+
+  if [ ! -d "${TECTOOLS_HOME}/${pkg}" ]; then
+      echo "ERROR: ${pkg} not found."
+      exit 1
+  fi
+  patch_file="${TECGRAF_REPO_ROOT}/patches/${pkg}.svn.diff"
+  if [ ! -f "$patch_file" ]; then
+      echo "ERROR: patchfile not found. $(basename $patch_file)"
+      exit 1
+  fi
+  cd "${TECTOOLS_HOME}/${pkg}"
+  if  ls ./src/*.rej &> /dev/null  ; then
+      echo "WARNING: already patch applyied. and Fail"
+      exit 1
+  fi
+  if [ -f .patch.done ]; then
+      echo "WARNING: already patch applyied."
+      exit 0
+  fi
+  patch -p0 < "$patch_file" && touch .patch.done 
+  exit 0
+#+end_src
+** clean_pkg
+#+begin_src bash :results output :tangle ./bin/clean_pkg :tangle-mode (identity #o755) :shebang #!/usr/bin/env bash
+  #set -eu
+  if [ "$#" -eq 0 ]; then
+      echo "usage: $(basename $0): {im|ftgl|cd|iup}"
+      exit 1
+  fi
+
+  if [ -z "${TECTOOLS_HOME}:=" ]; then
+      echo "Environment variable not set: TECTOOLS_HOME"
+      exit 1
+  fi
+  if [ -z "${TECGRAF_REPO_ROOT}:=" ]; then
+      echo "Environment variable not set: TECGRAF_REPO_ROOT"
+      exit 1
+  fi
+  pkg=$1
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
+  . /tmp/target.env
+
+  if [ ! -d "${TECTOOLS_HOME}/${pkg}" ]; then
+      echo "ERROR: ${pkg} not found."
+      exit 1
+  fi
+  cd  ${TECTOOLS_HOME}/${pkg}/ && find . -type d -name "dep" -exec rm -rf \{\} \;
+  cd  ${TECTOOLS_HOME}/${pkg}/src/ && make -f ../tecmake.mak clean clean-extra
+  cd  ${TECTOOLS_HOME}/${pkg}/ && rm -rf obj lib
+      #+end_src
+
+** build_pkg
+#+begin_src bash :results output :tangle ./bin/build_pkg :tangle-mode (identity #o755) :shebang #!/usr/bin/env bash
+  set -ev
+  if [ "$#" -eq 0 ]; then
+      echo "usage: $(basename $0): {im|ftgl|cd|iup}"
+      exit 1
+  fi
+
+  if [ -z "${TECTOOLS_HOME}:=" ]; then
+      echo "Environment variable not set: TECTOOLS_HOME"
+      exit 1
+  fi
+  if [ -z "${TECGRAF_REPO_ROOT}:=" ]; then
+      echo "Environment variable not set: TECGRAF_REPO_ROOT"
+      exit 1
+  fi
+  pkg=$1
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
+  . /tmp/target.env
+
+  if [ ! -d "${TECTOOLS_HOME}/${pkg}" ]; then
+      echo "ERROR: ${pkg} not found."
+      exit 1
+  fi
+  cd "${TECTOOLS_HOME}/${pkg}"
+  debug_tec_uname
+  env | egrep  '(LUA|TEC|EXCLUDE_)'
+#  make -e -j$(nproc) &> /tmp/${pkg}.log
+  make -e &> /tmp/${pkg}.log
+#+end_src
+
+** backup_target_pkg
+#+begin_src bash :results output :tangle ./bin/backup_target_pkg :tangle-mode (identity #o755) :shebang #!/usr/bin/env bash
+  if [ "$#" -eq 0 ]; then
+      echo "usage: $(basename $0): {im|ftgl|cd|iup}"
+      exit 1
+  fi
+
+  if [ -z "$TECTOOLS_HOME" ]; then
+      echo "Environment variable not set: TECTOOLS_HOME"
+      exit 1
+  fi
+  if [ -z "$TECGRAF_REPO_ROOT" ]; then
+      echo "Environment variable not set: TECGRAF_REPO_ROOT"
+      exit 1
+  fi
+
+  pkg=$1
+  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
+  . /tmp/target.env
+  dir="${TECTOOLS_HOME}/${pkg}"
+  if [ ! -d "$dir" ]; then
+      echo "ERROR: directory not found ${dir}"
+      exit 1
+  fi
+
+  cd "$dir"
+  if [ -f ./tec_uname ]; then
+      . ./tec_uname
+      ComputeTecUname
+      ComputeSystemPaths
+      ComputeLuaVersion
+  else
+      TEC_UNAME=$(ls lib)
+  fi
+  # debug_tec_uname.sh
+  baselib="./lib/$TEC_UNAME"
+  # echo $baselib
+  # env | grep USE_ | sort
+  basename=""
+  so_dir=""
+  if [[ ! -z  "$USE_MOTIF"  ]]; then
+      basename="${pkg}_motif"
+      so_dir="${TECGRAF_REPO_ROOT}/_so/motif/${pkg}"
+  fi
+  if [[ ! -z  "$USE_GTK"  ]]; then
+      basename="${pkg}_gtk"
+      so_dir="${TECGRAF_REPO_ROOT}/_so/gtk/${pkg}"
+  fi
+  echo $basename
+  if [[  -z "$basename" ]]; then
+      echo "ERROR: invalid target"
+      exit 1
+  fi
+  echo $baselib
+  tar -czvf /tmp/$basename.gz  -C $baselib .
+  mkdir -p "$so_dir"
+  cd "$so_dir"
+  tar -zxvf /tmp/$basename.gz
+  exit 0
+#+end_src
+
+* LUA
+基本的に、コマンドの実行自身はディストリビューションの標準パッケージンを使用する。
+ここで必要なのはオブジェクトファイル群である。
+
+- https://sourceforge.net/projects/luabinaries/files/5.4.2/Docs%20and%20Sources/lua-5.4.2_Sources.tar.gz/download
+** lua download
+#+begin_src bash :results output
+  download_tecgraf_lua
+#+end_src
 
 ** シンボリックリンクによる不具合回避
 サフィックス命名規則にブレが有り、実態と一致していないところがあるのでシンボリックリンクでカバーする。
@@ -152,148 +350,67 @@ babel におけるsudoの不具合回避がまだ十分ではありません。
 
 ** svn install
 - @see https://www.tecgraf.puc-rio.br/im/en/svn.html
-#+begin_src bash 
-  mkdir -p "${TECTOOLS_HOME}"
-  if [ -d "${TECTOOLS_HOME}/im" ]; then
-      echo "im already checkuout."
-  else
-      cd "${TECTOOLS_HOME}"
-      svn checkout -r820 svn://svn.code.sf.net/p/imtoolkit/im/trunk/im im
-  fi
-  exit 0
+#+begin_src bash results output
+  download_svn_pkg im "svn://svn.code.sf.net/p/imtoolkit/im/trunk/im" 820
 #+end_src
-
-#+RESULTS:
 
 
 #+begin_src bash 
 env | grep USE_ | sort
 #+end_src
 
-** patch to im
-#+begin_src bash 
-  if [ ! -d "${TECTOOLS_HOME}/im" ]; then
-      echo "im not found."
-      exit 1
-  fi
-  patch_file="${TECGRAF_REPO_ROOT}/patches/im.svn.diff"
-  if [ ! -f "$patch_file" ]; then
-      echo "patchfile not found."
-      exit 1
-  fi
-  cd "${TECTOOLS_HOME}/im"
-  patch -p0 < "$patch_file"
-  exit 0
+** patch im
+#+begin_src bash :results output 
+  patch_pkg im
 #+end_src
-
 
 ** clean im
 #+begin_src bash 
-  set -ev
-  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
-  . /tmp/target.env
-  cd  ${TECTOOLS_HOME}/im/ && find . -type d -name "dep" -exec rm -rf \{\} \;
-  cd  ${TECTOOLS_HOME}/im/src/ && make -f ../tecmake.mak clean clean-extra
-  cd  ${TECTOOLS_HOME}/im/ && rm -rf obj lib
+  clean_pkg im
       #+end_src
 
-
 ** build im
+- lua-5.{x}
 - liblua-5.{x}-dev
 - libfftw3-dev
-#+begin_src bash :results list
-  set -ev
-  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
-  . /tmp/target.env
-  cd  ${TECTOOLS_HOME}/im || echo not found im
-  debug_tec_uname
-  env | egrep  '(LUA|TEC)'
-  make -e -j$(nproc) &> /tmp/im.log
+#+begin_src bash :results output
+  build_pkg im
 #+end_src
-
-
 
 ** backup im
 #+begin_src bash 
-  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
-  . /tmp/target.env
-  backup_tecgraf_build_result im
+  backup_target_pkg im
 #+end_src
-
 
 * CD
 - @see https://www.tecgraf.puc-rio.br/cd/en/guide.html
-** svn install
-- @see https://www.tecgraf.puc-rio.br/cd/en/svn.html
+** ftgl
+- libglu1-mesa-dev:  GL/glu.h not found
+*** install
 #+begin_src bash
-  if [ -d ${TECTOOLS_HOME}/cd ]; then
-      echo "cd already checkuout."
-  else
-      cd ${TECTOOLS_HOME}
-      svn checkout -r901 svn://svn.code.sf.net/p/canvasdraw/cd/trunk/cd cd 
-  fi
-
-  if [ -d ${TECTOOLS_HOME}/ftgl ]; then
-      echo "ftgl already checkuout."
-  else
-      cd ${TECTOOLS_HOME}
-      svn checkout -r901 svn://svn.code.sf.net/p/canvasdraw/cd/trunk/ftgl ftgl
-  fi
-  exit 0
+  download_svn_pkg ftgl "svn://svn.code.sf.net/p/canvasdraw/cd/trunk/ftgl" 901
+#+end_src
+*** patch to ftgl
+#+begin_src bash
+  patch_pkg ftgl
 #+end_src
 
-
-** patch to ftgl
-#+begin_src bash
-  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
-  if [ ! -d "${TECTOOLS_HOME}/ftgl" ]; then
-      echo "ftgl not found."
-      exit 1
-  fi
-  patch_file="${TECGRAF_REPO_ROOT}/patches/ftgl.svn.diff"
-  if [ ! -f "$patch_file" ]; then
-      echo "patchfile not found."
-      exit 1
-  fi
-  cd "${TECTOOLS_HOME}/ftgl"
-  patch -p0 < "$patch_file"
-  exit 0
+*** build ftgl
+#+begin_src bash :results output
+  build_pkg ftgl
 #+end_src
 
-
-** clean ftgl
+*** clean ftgl
 #+begin_src bash
-  set -ev
-  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
-  . /tmp/target.env
-  cd  ${TECTOOLS_HOME}/ftgl/src/ && make -f ../tecmake.mak clean clean-extra
-  cd  ${TECTOOLS_HOME}/ftgl/ && rm -rf obj lib
-  cd  ${TECTOOLS_HOME}/ftgl/ && find . -type d -name "dep" -exec rm -rf \{\} \;
-
+  clean_pkg ftgl
       #+end_src
 
-
-#+begin_src bash :results output
-  set -ev
-  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
-  env | egrep  '(LUA|TEC)'
-  cd  ${TECTOOLS_HOME}/ftgl || echo not found ftgl
-  debug_tec_uname
-  make -e -j$(nproc) &> /tmp/ftgl.log
+*** backup ftgl
+#+begin_src bash
+  backup_target_pkg ftgl
 #+end_src
 
-
-
-** backup ftgl
-#+begin_src bash 
-  set -ev
-  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
-  . /tmp/target.env
-  backup_tecgraf_build_result ftgl
-#+end_src
-
-
-** install ftgl
+*** install ftgl
 
 #+begin_src bash
   set -ve
@@ -318,111 +435,49 @@ env | grep USE_ | sort
 #+end_src
 
 
-** patch to cd
+** cd
+*** install
 #+begin_src bash
-  set -ve
-  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
-  if [ ! -d "${TECTOOLS_HOME}/cd" ]; then
-      echo "cd not found."
-      exit 1
-  fi
-  patch_file="${TECGRAF_REPO_ROOT}/patches/cd.svn.diff"
-  if [ ! -f "$patch_file" ]; then
-      echo "patchfile not found."
-      exit 1
-  fi
-  cd "${TECTOOLS_HOME}/cd"
-  patch -p0 / && rm -rf obj lib
-
+  download_svn_pkg cd "svn://svn.code.sf.net/p/canvasdraw/cd/trunk/cd" 901
 #+end_src
 
-
+*** patch to cd
 #+begin_src bash :results output
-  set -ev
-  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
-  env | egrep  '(LUA|TEC)'
-  cd  ${TECTOOLS_HOME}/ftgl || echo not found ftgl
-  debug_tec_uname
-  make -e -j$(nproc) &> /tmp/ftgl.log
+  patch_pkg cd
 #+end_src
 
-
-
-#+RESULTS:
-| Tecmake: | Building | Dependencies               | ...                         | [                            | dep/cd.dep.Linux612_64       | ]                                  | (can                           | be                                 | slow)                          |                               |                                    |                              |                              |                             |                              |                            |                                |                                  |                                    |                               |                               |                               |                                  |                                    |                            |                            |                          |                            |                             |                           |                           |                                |                              |                             |                           |                            |                              |                          |                                |                            |                               |                          |                                  |                                     |                               |                                       |                             |                               |                                  |                                 |                                 |                              |                                 |                                  |                                |                                        |                                     |                             |
-| rm       | -f       | ../lib/Linux612_64/libcd.a | ../lib/Linux612_64/libcd.so |                              |                              |                                    |                                |                                    |                                |                               |                                    |                              |                              |                             |                              |                            |                                |                                  |                                    |                               |                               |                               |                                  |                                    |                            |                            |                          |                            |                             |                           |                           |                                |                              |                             |                           |                            |                              |                          |                                |                            |                               |                          |                                  |                                     |                               |                                       |                             |                               |                                  |                                 |                                 |                              |                                 |                                  |                                |                                        |                                     |                             |
-| rm       | -f       | ../obj/Linux612_64/cd.o    | ../obj/Linux612_64/wd.o     | ../obj/Linux612_64/wdhdcpy.o | ../obj/Linux612_64/rgb2map.o | ../obj/Linux612_64/cd_vectortext.o | ../obj/Linux612_64/cd_active.o | ../obj/Linux612_64/cd_attributes.o | ../obj/Linux612_64/cd_bitmap.o | ../obj/Linux612_64/cd_image.o | ../obj/Linux612_64/cd_primitives.o | ../obj/Linux612_64/cd_text.o | ../obj/Linux612_64/cd_util.o | ../obj/Linux612_64/base64.o | ../obj/Linux612_64/lodepng.o | ../obj/Linux612_64/cdsvg.o | ../obj/Linux612_64/cd_intcgm.o | ../obj/Linux612_64/cgm_bin_get.o | ../obj/Linux612_64/cgm_bin_parse.o | ../obj/Linux612_64/cgm_list.o | ../obj/Linux612_64/cgm_play.o | ../obj/Linux612_64/cgm_sism.o | ../obj/Linux612_64/cgm_txt_get.o | ../obj/Linux612_64/cgm_txt_parse.o | ../obj/Linux612_64/cddgn.o | ../obj/Linux612_64/cdcgm.o | ../obj/Linux612_64/cgm.o | ../obj/Linux612_64/cddxf.o | ../obj/Linux612_64/cdirgb.o | ../obj/Linux612_64/cdmf.o | ../obj/Linux612_64/cdps.o | ../obj/Linux612_64/cdpicture.o | ../obj/Linux612_64/cddebug.o | ../obj/Linux612_64/cdpptx.o | ../obj/Linux612_64/pptx.o | ../obj/Linux612_64/ioapi.o | ../obj/Linux612_64/minizip.o | ../obj/Linux612_64/zip.o | ../obj/Linux612_64/miniunzip.o | ../obj/Linux612_64/unzip.o | ../obj/Linux612_64/cdfontex.o | ../obj/Linux612_64/sim.o | ../obj/Linux612_64/cd_truetype.o | ../obj/Linux612_64/sim_primitives.o | ../obj/Linux612_64/sim_text.o | ../obj/Linux612_64/sim_linepolyfill.o | ../obj/Linux612_64/cd0wmf.o | ../obj/Linux612_64/cdgdkclp.o | ../obj/Linux612_64/cdcairodbuf.o | ../obj/Linux612_64/cdcairopdf.o | ../obj/Linux612_64/cdcairosvg.o | ../obj/Linux612_64/cdcairo.o | ../obj/Linux612_64/cdcairoimg.o | ../obj/Linux612_64/cdcairoirgb.o | ../obj/Linux612_64/cdcairops.o | ../obj/Linux612_64/cdcaironative_gdk.o | ../obj/Linux612_64/cdcairoprn_gtk.o | ../obj/Linux612_64/cd0emf.o |
-| rm       | -f       | dep/cd.dep.Linux612_64     | ./cd                        | so_locations                 |                              |                                    |                                |                                    |                                |                               |                                    |                              |                              |                             |                              |                            |                                |                                  |                                    |                               |                               |                               |                                  |                                    |                            |                            |                          |                            |                             |                           |                           |                                |                              |                             |                           |                            |                              |                          |                                |                            |                               |                          |                                  |                                     |                               |                                       |                             |                               |                                  |                                 |                                 |                              |                                 |                                  |                                |                                        |                                     |                             |
-
-
-** clean cd
-#+begin_src bash
-  set -ev
-  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
-  . /tmp/target.env
-  cd  ${TECTOOLS_HOME}/cd/src/ && make -f ../tecmake.mak clean clean-extra
-  cd  ${TECTOOLS_HOME}/cd/ && rm -rf obj lib
-  cd  ${TECTOOLS_HOME}/cd/ && find . -type d -name "dep" -exec rm -rf \{\} \;
+*** clean cd
+#+begin_src bash :results output
+  clean_pkg cd
       #+end_src
 
-
-
-** build cd
+*** build cd
 #+begin_src bash :results output
-  set -ev
-  pkg-config --modversion gtk+-3.0 
-  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
-  . /tmp/target.env
-  env | egrep  '(LUA|TEC|EXCLUDE)'
-  cd  ${TECTOOLS_HOME}/cd || (echo not found cd; exit 1)
-  make -e -j$(nproc) &> /tmp/cd.log
+  build_pkg cd
 #+end_src
 
-
-** backup cd
+*** backup cd
 #+begin_src bash :results output
-  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
-  . /tmp/target.env
-  backup_tecgraf_build_result cd
+  backup_target_pkg cd
 #+end_src
 
 * IUP
 - @see https://www.tecgraf.puc-rio.br/iup/en/guide.html
 
-** svn install
+** download iup
 - @see https://www.tecgraf.puc-rio.br/iup/en/svn.html
-#+begin_src bash
-  if [ -d "${TECTOOLS_HOME}/iup" ]; then
-      echo "iup already checkuout."
-  else
-      cd "${TECTOOLS_HOME}"
-      svn checkout -r5971 svn://svn.code.sf.net/p/iup/iup/trunk/iup iup
-  fi
-  exit 0
+#+begin_src bash :results output
+  download_svn_pkg iup "svn://svn.code.sf.net/p/iup/iup/trunk/iup" 5971
 #+end_src
 
-
 ** patch to iup
-#+begin_src bash
-  set -ve
-  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
-  if [ ! -d "${TECTOOLS_HOME}/iup" ]; then
-      echo "iup not found."
-      exit 1
-  fi
-  patch_file="${TECGRAF_REPO_ROOT}/patches/iup.svn.diff"
-  if [ ! -f "$patch_file" ]; then
-      echo "patchfile not found."
-      exit 1
-  fi
-  cd "${TECTOOLS_HOME}/iup"
-  patch -p0 "$patch_file"
-  exit 0
+#+begin_src bash :results output
+  patch_pkg iup
   #+end_src
 
 ** install iup-go
 - https://github.com/gen2brain/iup-go.git
-#+begin_src bash
+#+begin_src bash :results output
   set -ev
   . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   . /tmp/target.env
@@ -434,9 +489,8 @@ env | grep USE_ | sort
   fi
 #+end_src
 
-
 ** overwrite iup-go
-#+begin_src bash
+#+begin_src bash :results output
   set -ev
   . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
   . /tmp/target.env
@@ -472,7 +526,6 @@ env | grep USE_ | sort
   rsync -av $SRC/ $DST/
 #+end_src
 
-
 ** fix: src/libjasper2/base/jas_stream.c
 #+begin_src c
   // add: kenjirofukuda@gmail.com
@@ -480,43 +533,23 @@ env | grep USE_ | sort
 #+end_src
 
 ** install libjasper
-#+begin_src bash
+#+begin_src bash :results output
   # void linux
   sudo xbps-install jasper jasper-devel libjasper
   sudo xbps-install lua lua-devel
 #+end_src
 
-
 ** clean iup
-#+begin_src bash
-  set -ev
-  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
-  . /tmp/target.env
-  cd  ${TECTOOLS_HOME}/iup/src/ && make -f ../tecmake.mak clean clean-extra
-  cd  ${TECTOOLS_HOME}/iup/ && rm -rf obj lib
-  cd  ${TECTOOLS_HOME}/iup/ && find . -type f -name "*.dep" -exec rm -rf \{\} \;
-  cd  ${TECTOOLS_HOME}/iup/ && find . -type d -name "dep" -exec rm -rf \{\} \;
+#+begin_src bash :results output
+  clean_pkg iup
 #+end_src
-
-
 
 ** build iup
 #+begin_src bash :results output
-  set -ev
-  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
-  . /tmp/target.env
-  cd  ${TECTOOLS_HOME}/iup || (echo not found iup; exit 1)
-  pwd
-  env | egrep  '(LUA|TEC)'
-  rm -rf /tmp/iup.log
-  cd  ${TECTOOLS_HOME}/iup && make -e -j$(nproc) &> /tmp/iup.log
+  build_pkg iup
 #+end_src
-
 
 ** backup iup
 #+begin_src bash :results output
-  set -ev
-  . "${TECGRAF_REPO_ROOT}/bin/bashrc_tecgraf"
-  . /tmp/target.env
-  backup_tecgraf_build_result iup
+  backup_target_pkg iup
 #+end_src
